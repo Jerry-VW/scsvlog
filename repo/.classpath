@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path="src"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/qwer/work/programs/java/scala/lib/scala-reflect.jar"/>
+	<classpathentry kind="lib" path="/home/qwer/work/programs/java/scala/lib/scala-library.jar"/>
+	<classpathentry kind="lib" path="/home/qwer/work/programs/java/scala/lib/scala-swing_2.11-1.0.1.jar"/>
+	<classpathentry kind="lib" path="lib/jna-4.0.0.jar"/>
+	<classpathentry kind="lib" path="lib/purejavacomm.jar"/>
+	<classpathentry kind="lib" path="lib/jchart2d-3.2.2.jar"/>
+	<classpathentry kind="lib" path="lib/jdbm-1.0.jar"/>
+	<classpathentry kind="lib" path="lib/laf/JTattoo-1.6.11.jar"/>
+	<classpathentry kind="lib" path="lib/laf/pgslookandfeel-1.1.2.jar"/>
+	<classpathentry kind="output" path="bin"/>
+</classpath>
