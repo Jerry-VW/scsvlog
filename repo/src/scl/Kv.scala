@@ -9,7 +9,7 @@ class Kv {
 
     def getI(k:String, d:Int):Int = {
         val v = get(k, "")
-        if (v == "") d else v.toInt
+        if (v == "") d else v.toDouble.toInt
     }
     def getD(k:String, d:Double):Double = {
         val v = get(k, "")
