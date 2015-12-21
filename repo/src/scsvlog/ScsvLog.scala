@@ -132,7 +132,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         val ys = l.replaceAll(";","").replaceAll(",","").replaceAll("\r","").split("\\s+").toBuffer[String]
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
                         val y = (ys.map { _.toDouble })
-                        for (i <- 0 to y.length) y(i) += ini.getD("yAdd"+i,0)
+                        for (i <- 0 to y.length if (!y(i).isNaN)) y(i) += ini.getD("yAdd"+i,0)
                         if (y.length > 0){
                             if (ini.getI("xType",0) == 1){ x = y(0); y.trimStart(1) }
                             else if (ini.getI("xType",0) == 2) x = System.currentTimeMillis
