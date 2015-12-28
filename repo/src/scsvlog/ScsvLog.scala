@@ -4,30 +4,18 @@ import java.awt
 import scala.language.{reflectiveCalls,existentials}
 import javax.swing.border.{TitledBorder,LineBorder,EtchedBorder}
 import java.util.concurrent.atomic
+import scl.SwUtil
 
 object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
     val app = this
 
     def top = new swing.MainFrame { title = "CSV log"
         val top = this
-
-        // load config
-        val ini = new scl.KvIni("./scsvlog.ini")
-//        val ini = new scl.KvJdbm("./scsvlog.db")
-        
-        // load localization
-        scl.GetText.init(ini.getI("lang",0))
-        
-        // set L&F
-        javax.swing.UIManager.setLookAndFeel(Config.lafs(ini.getI("laf",0)))
+        val ini = Config.ini   
 
         var channel:scl.Channel = null
         val channelOpened = new atomic.AtomicBoolean(false)
 
-        val bauds = List(75,110,150,300,600,1200,1800,2400,3600,4800,7200,9600,14400,19200,28800,38400,57600,115200,128000,134400,
-            161280,201600,230400,256000,268800,403200,460800,614400,806400,921600,1228800,2457600,3000000,6000000,12000000
-        )
-        
         var portOn:swing.CheckBox         = null
         var portPanel:swing.BoxPanel      = null
         var serialPanel:swing.BoxPanel    = null
@@ -37,7 +25,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         var connectButton:swing.Button    = null
         var disconnectButton:swing.Button = null
         var statusText:swing.Label        = null
-        var chart:scsvlog.Chart           = null
+        var chart:scl.Chart               = null
         var xTypeCombo:swing.ComboBox[String] = null
         var xDateFormatText:swing.TextField = null
 
@@ -54,14 +42,12 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         object colors {
             val available = List("red","magenta","orange","pink","green","blue","cyan","yellow","gray","lightgray","darkgray","black","saddlebrown","tan")
             val current = ini.get("colors",available.mkString(",")).split(",")
-            def fromName(name:String):awt.Color = scl.SwUtil.svgColor(name)
-            def toName(c:awt.Color) = "#" + Integer.toHexString(c.getRGB).substring(2)
-            def set(i:Int, c:String):awt.Color = {
-                current(i) = c
-                values.labels(i).foreground = currentColor(i)
-                currentColor(i)
+            def set(i:Int, cs:String):awt.Color = {
+                current(i) = cs
+                val c = SwUtil.svgColor(cs)
+                values.labels(i).foreground = c
+                c
             }
-            def currentColor(i:Int) = fromName(current(i))
             
             val chooser = new swing.Dialog(top){
                 val chooser  = this
@@ -77,7 +63,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.BoxPanel(swing.Orientation.Horizontal){
                             contents ++= List(
                                 new swing.Button(new swing.Action("Ok"){
-                                    def apply = { selectedColor = toName(picker.color); chooser.close; callback(selectedColor) }
+                                    def apply = { selectedColor = SwUtil.svgName(picker.color); chooser.close; callback(selectedColor) }
                                 })
                                 ,new swing.Button(new swing.Action("Cancel"){ def apply = chooser.close })
                             )
@@ -86,7 +72,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                 }
                 def openColor(c:String, cb:String => Unit ){
                     selectedColor = c
-                    picker.color = fromName(c)
+                    picker.color = SwUtil.svgColor(c)
                     callback = cb
                     open
                 }
@@ -304,7 +290,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         }
                         ,new swing.BoxPanel(swing.Orientation.Horizontal){ contents ++= List(
                             new swing.Label(tr(" baud:"))
-                            ,new swing.ComboBox(bauds){ maximumSize = preferredSize
+                            ,new swing.ComboBox(Config.bauds){ maximumSize = preferredSize
                                 makeEditable()(swing.ComboBox.intEditor)
                                 selection.item = ini.getI("baud",9600)
                                 listenTo(selection)
@@ -443,7 +429,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,swing.Swing.HGlue
                         )
                     }
-                    ,new swing.GridPanel(6,channelsCount+1){ maximumSize = new swing.Dimension(Integer.MAX_VALUE,150)
+                    ,new swing.GridPanel(7,channelsCount+1){ maximumSize = new swing.Dimension(Integer.MAX_VALUE,150)
                         border = new EtchedBorder
                         contents += new swing.Label(tr("show"))
                         contents ++= (for (i <- 1 to channelsCount)
@@ -460,11 +446,21 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("name"+i, text); chart.traceName(i-1,text) }
                         })
+                        contents += new swing.Label(tr("Y axis"))
+                        contents ++= (for (i <- 1 to channelsCount)
+                            yield (new swing.ComboBox(List(1,2)){
+                                selection.index = ini.getI("yAxis"+i,0)
+                                listenTo(selection)
+                                reactions += { case swing.event.SelectionChanged(_) =>
+                                    ini.put("yAxis"+i,selection.index)
+                                }
+                            })
+                        )
                         contents += new swing.Label(tr("color"))
                         contents ++= (for (i <- 1 to channelsCount)
-                            yield new swing.Button(""){ val _but = this; background = colors.currentColor(i-1);
+                            yield new swing.Button(""){ val _but = this; background = SwUtil.svgColor(colors.current(i-1));
                                 action = new swing.Action(""){ def apply = {
-                                    colors.chooser.openColor( colors.current(i-1), { c:String => _but.background = colors.set(i-1,c); chart.traceColor(i-1,colors.currentColor(i-1)) })
+                                    colors.chooser.openColor( colors.current(i-1), { c:String => _but.background = colors.set(i-1,c); chart.traceColor(i-1,colors.current(i-1)) })
                             }}}
                         )
                         contents += new swing.Label(tr("width"))
@@ -509,10 +505,11 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     }
                     contents += swing.Swing.HGlue
                 }
-                ,new scsvlog.Chart { top.chart = this; xName(ini.get("xLabel","x")); yName(ini.get("yLabel","y"));
+                ,new scl.Chart { top.chart = this; xName(ini.get("xLabel","x")); yName(ini.get("yLabel","y"));
+                    addAxisRight
                     for (i <- 1 to channelsCount){
-                        addTrace(ini.get("name"+i,"Y"+i), colors.currentColor(i-1), ini.getB("show"+i,false),
-                            ini.getD("width"+i,1.0), ini.getI("style"+i,0)
+                        addTrace(ini.get("name"+i,"Y"+i), colors.current(i-1), ini.getB("show"+i,false),
+                            ini.getD("width"+i,1.0), ini.getI("style"+i,0), ini.getI("yAxis"+i,0) == 1
                         )
                     }
                     rangeX(ini.getD("winXmin",0),ini.getD("winXmax",0))

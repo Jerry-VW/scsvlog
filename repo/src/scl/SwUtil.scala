@@ -35,4 +35,5 @@ object SwUtil {
     )
     val svgNames = svgColors.keys
     def svgColor(c:String, d:String="black") = java.awt.Color.decode(if (c.startsWith("#")) c else svgColors.getOrElse(c, svgColors.getOrElse(d, svgColors("black"))))
+    def svgName(c:java.awt.Color) = "#" + Integer.toHexString(c.getRGB).substring(2)
 }

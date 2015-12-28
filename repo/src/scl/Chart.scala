@@ -1,4 +1,4 @@
-package scsvlog
+package scl
 
 import info.monitorenter.gui.chart.{Chart2D,ZoomableChart,TracePoint2D,IAxis,IAxisScalePolicy,ITrace2D,rangepolicies,traces,axis,labelformatters}
 import java.{awt}, javax.swing.filechooser.{FileNameExtensionFilter}
@@ -33,17 +33,20 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     }
     
     var xLimit = new java.util.concurrent.atomic.AtomicInteger(0)
+    var trace0:ITrace2D = null
     
     def tracesCount = _chart.getTraces.size()
-    def addTrace(name:String, color:java.awt.Color, show:Boolean, width:Double, style:Int){
-        _chart.addTrace(new traces.Trace2DSimple)
+    def addAxisRight = _chart.addAxisYRight(new axis.AxisLinear)
+    def addTrace(name:String, color:String, show:Boolean, width:Double, style:Int, yAxisRight:Boolean=false){
+        _chart.addTrace(new traces.Trace2DSorted, _chart.getAxisX, if (yAxisRight) _chart.getAxesYRight.get(0) else _chart.getAxisY)
         val i = tracesCount-1
         traceName(i, name)
-        traceColor(i, color)
+        traceColor(i, SwUtil.svgColor(color))
         traceShow(i, show)
         traceStyle(i, width, style)
     }
     def trace(i:Int):ITrace2D = (_chart.getTraces().toArray())(i).asInstanceOf[ITrace2D]
+    def pointsCount = { if (trace0 == null) trace0 = trace(0); trace0.getSize }
     def addPoints(x:Double, y:Seq[Double]) = {
         for (i <- 0 until y.length) trace(i).addPoint(x, y(i))
         // remove excess points
@@ -56,6 +59,7 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     def clearPoints = for (i <- 0 until tracesCount) trace(i).removeAllPoints
     def traceName(i:Int, name:String) = trace(i).setName(name)
     def traceColor(i:Int, color:awt.Color) = trace(i).setColor(color)
+    def traceColor(i:Int, color:String) = trace(i).setColor(SwUtil.svgColor(color))
     def traceShow(i:Int, show:Boolean) = trace(i).setVisible(show)
     def traceStyle(i:Int, width:Double, style:Int) = {
         if (style == 0) trace(i).setStroke(new awt.BasicStroke(width.toFloat))
@@ -67,6 +71,7 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     
     def xName(name:String) = _chart.getAxisX().getAxisTitle().setTitle(name)
     def yName(name:String) = _chart.getAxisY().getAxisTitle().setTitle(name)
+    def yNameRight(name:String) = _chart.getAxesYRight.get(0).getAxisTitle().setTitle(name)
     
     def rangeX(min:Double, max:Double) = {
         _chart.rpx = if (min >= max) (new rangepolicies.RangePolicyUnbounded) else
@@ -84,6 +89,8 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
         new labelformatters.LabelFormatterDate(new java.text.SimpleDateFormat(format))
         else new labelformatters.LabelFormatterSimple
     )
+    
+    def requestRepaint(request:Boolean) = _chart.setRequestedRepaint(request)
     
     // save snapshot dialog
     val snapshotDialog = new swing.FileChooser{
