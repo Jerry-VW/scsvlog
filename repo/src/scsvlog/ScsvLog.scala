@@ -211,7 +211,11 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.ComboBox(Config.lafsNames){ maximumSize = preferredSize
                             selection.index = ini.getI("laf",0)
                             listenTo(selection)
-                            reactions += { case swing.event.SelectionChanged(_) => ini.put("laf", selection.index) }
+                            reactions += { case swing.event.SelectionChanged(_) =>
+                                ini.put("laf", selection.index)
+                                javax.swing.UIManager.setLookAndFeel(Config.lafs(selection.index))
+                                javax.swing.SwingUtilities.updateComponentTreeUI(top.peer)
+                            }
                             tooltip = tr("Select current Look&Feel")
                         }
                         ,new swing.Label(" | ")
@@ -219,7 +223,9 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.ComboBox( scl.GetText.displayLangs ){ maximumSize = preferredSize
                             selection.index = ini.getI("lang",0)
                             listenTo(selection)
-                            reactions += { case swing.event.SelectionChanged(_) => ini.put("lang", selection.index) }
+                            reactions += { case swing.event.SelectionChanged(_) =>
+                                ini.put("lang", selection.index)
+                            }
                             tooltip = tr("Select current language")
                         }
                         ,new swing.Label(" | ")
