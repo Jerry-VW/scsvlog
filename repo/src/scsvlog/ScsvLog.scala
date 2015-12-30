@@ -10,24 +10,24 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
     val app = this
 
     def top = new swing.MainFrame { title = "CSV log"
-        val top = this
-        val ini = Config.ini   
+        val top                               = this
+        val ini                               = Config.ini   
 
-        var channel:scl.Channel = null
-        val channelOpened = new atomic.AtomicBoolean(false)
+        var channel:scl.Channel               = null
+        val channelOpened                     = new atomic.AtomicBoolean(false)
 
-        var portOn:swing.CheckBox         = null
-        var portPanel:swing.BoxPanel      = null
-        var serialPanel:swing.BoxPanel    = null
-        var configPanel:swing.BoxPanel    = null
-        var valuesPanel:swing.BoxPanel    = null
-        var ipText:swing.TextField        = null
-        var connectButton:swing.Button    = null
-        var disconnectButton:swing.Button = null
-        var statusText:swing.Label        = null
-        var chart:scl.Chart               = null
+        var portOn:swing.CheckBox             = null
+        var portPanel:swing.BoxPanel          = null
+        var serialPanel:swing.BoxPanel        = null
+        var configPanel:swing.BoxPanel        = null
+        var valuesPanel:swing.BoxPanel        = null
+        var ipText:swing.TextField            = null
+        var connectButton:swing.Button        = null
+        var disconnectButton:swing.Button     = null
+        var statusText:swing.Label            = null
+        var chart:scl.Chart                   = null
         var xTypeCombo:swing.ComboBox[String] = null
-        var xDateFormatText:swing.TextField = null
+        var xDateFormatText:swing.TextField   = null
 
         val channelsCount = 10
     
@@ -117,8 +117,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         var x:Double = lineNum.getAndIncrement()
                         val ys = l.replaceAll(";","").replaceAll(",","").replaceAll("\r","").split("\\s+").toBuffer[String]
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
-                        val y = (ys.map { _.toDouble })
-                        for (i <- 0 to y.length if (!y(i).isNaN)) y(i) += ini.getD("yAdd"+i,0)
+                        val y = (ys.map { _.toDouble }); //println(y.mkString(","))
+                        for (i <- 0 until y.length if (!y(i).isNaN)) y(i) += ini.getD("yAdd"+i,0)
                         if (y.length > 0){
                             if (ini.getI("xType",0) == 1){ x = y(0); y.trimStart(1) }
                             else if (ini.getI("xType",0) == 2) x = System.currentTimeMillis
@@ -139,7 +139,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
             scheduleAtFixedRate( new java.util.TimerTask {
                 def run = {
                     if (channelOpened.get()){
-                        try { readBuf ++= channel.read
+                        try {
+                            readBuf ++= channel.read
                             var b = -1
                             while ((readBuf.length > 0)&&(b != '\n')){
                                 b = readBuf.dequeue
@@ -240,24 +241,24 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 chart.clearPoints
                                 chart.xAxisFormat(ini.getI("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
                                 
-                                disconnectButton.visible = true
                                 connectButton.visible    = false
                                 portPanel.visible        = false
                                 portOn.selected          = false
                                 xTypeCombo.enabled       = false
                                 xDateFormatText.enabled  = false
+                                disconnectButton.visible = true
                                 channelOpened.set(true)
                             } catch { case _:Throwable => }
                         }}){ connectButton = this; tooltip = tr("Connect to port") }
-                        ,new swing.Button(new swing.Action(tr("disconnect")){ def apply = {
+                        ,new swing.Button(new swing.Action(tr("disconnect")){ def apply = { println("disconnect...")
                             channelOpened.set(false)
                             if (channel != null){ channel.close; channel = null }
-                            connectButton.visible    = true
-                            disconnectButton.visible = false
-                            portOn.selected          = true
-                            portPanel.visible        = true
-                            xTypeCombo.enabled       = true
-                            xDateFormatText.enabled  = true
+                            connectButton.visible        = true
+                            disconnectButton.visible     = false
+                            portOn.selected              = true
+                            portPanel.visible            = true
+                            xTypeCombo.enabled           = true
+                            xDateFormatText.enabled      = true
                         }}){ disconnectButton = this; visible = false; tooltip = tr("Disconnect from port") }
                     )
                 }
