@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2015-12-28 15:36+0200\n"
+"POT-Creation-Date: 2016-01-23 21:02+0200\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,226 +17,238 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: src/scsvlog/ScsvLog.scala:170
+#: src/scsvlog/ScsvLog.scala:171
 msgid "port"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:172
+#: src/scsvlog/ScsvLog.scala:173
 msgid "Show port configuration"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:175
+#: src/scsvlog/ScsvLog.scala:176
 msgid "config"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:177
+#: src/scsvlog/ScsvLog.scala:178
 msgid "Show chart/channels configuration"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:180
+#: src/scsvlog/ScsvLog.scala:181
 msgid "values"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:182
+#: src/scsvlog/ScsvLog.scala:183
 msgid "Show values"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:186
+#: src/scsvlog/ScsvLog.scala:187
 msgid "chart"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:188
+#: src/scsvlog/ScsvLog.scala:189
 msgid "Enable chart"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:190
+#: src/scsvlog/ScsvLog.scala:191
 msgid "reset"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:190
+#: src/scsvlog/ScsvLog.scala:191
 msgid "Clear all data"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:192
+#: src/scsvlog/ScsvLog.scala:193
 msgid "Save chart to PNG"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:197
+#: src/scsvlog/ScsvLog.scala:198
 msgid "Replace ?"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:197
+#: src/scsvlog/ScsvLog.scala:198
 msgid "Confirm replace"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:202
+#: src/scsvlog/ScsvLog.scala:203
 msgid "Save data to CSV"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:204
+#: src/scsvlog/ScsvLog.scala:205
 msgid "auto"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:206
+#: src/scsvlog/ScsvLog.scala:207
 msgid "Automatic periodic CSV save"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:214
+#: src/scsvlog/ScsvLog.scala:219
 msgid "Select current Look&Feel"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:222
+#: src/scsvlog/ScsvLog.scala:229
 msgid "Select current language"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:226
+#: src/scsvlog/ScsvLog.scala:233
 msgid "connect"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:251
+#: src/scsvlog/ScsvLog.scala:258
 msgid "Connect to port"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:252
+#: src/scsvlog/ScsvLog.scala:259
 msgid "disconnect"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:261
+#: src/scsvlog/ScsvLog.scala:268
 msgid "Disconnect from port"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:265
+#: src/scsvlog/ScsvLog.scala:272
 msgid "Port"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:276
+#: src/scsvlog/ScsvLog.scala:283
 msgid "Select channel"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:289
+#: src/scsvlog/ScsvLog.scala:296
 msgid "Socket IP address and port"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:292
+#: src/scsvlog/ScsvLog.scala:299
 msgid " baud:"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:300
+#: src/scsvlog/ScsvLog.scala:307
 msgid "Serial port baud rate"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:302
+#: src/scsvlog/ScsvLog.scala:309
 msgid " bits:"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:309
+#: src/scsvlog/ScsvLog.scala:316
 msgid "Serial port data bits"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:311
+#: src/scsvlog/ScsvLog.scala:318
 msgid " parity:"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:318
+#: src/scsvlog/ScsvLog.scala:325
 msgid "Serial port parity"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:320
+#: src/scsvlog/ScsvLog.scala:327
 msgid " stops:"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:327
+#: src/scsvlog/ScsvLog.scala:334
 msgid "Serial port stop bits"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:341
+#: src/scsvlog/ScsvLog.scala:348
 msgid "X axis label"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:344
+#: src/scsvlog/ScsvLog.scala:351
 msgid "line №"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:344
+#: src/scsvlog/ScsvLog.scala:351
 msgid "1st col"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:344
+#: src/scsvlog/ScsvLog.scala:351
 msgid "date"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:352
+#: src/scsvlog/ScsvLog.scala:359
 msgid "X axis type"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:360
+#: src/scsvlog/ScsvLog.scala:367
 msgid "X date/time format"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:362
+#: src/scsvlog/ScsvLog.scala:369
 msgid " limit: "
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:371
+#: src/scsvlog/ScsvLog.scala:378
 msgid "Limit number of points"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:373
+#: src/scsvlog/ScsvLog.scala:380
 msgid " skip: "
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:381
+#: src/scsvlog/ScsvLog.scala:388
 msgid "Skip CSV lines"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:389
+#: src/scsvlog/ScsvLog.scala:396
 msgid "Y axis label"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:392
+#: src/scsvlog/ScsvLog.scala:399
 msgid "window"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:400
+#: src/scsvlog/ScsvLog.scala:407
 msgid "X window minimum"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:409
+#: src/scsvlog/ScsvLog.scala:416
 msgid "X window maximum"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:418
+#: src/scsvlog/ScsvLog.scala:425
 msgid "Y window minimum"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:427
+#: src/scsvlog/ScsvLog.scala:434
 msgid "Y window maximum"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:434
+#: src/scsvlog/ScsvLog.scala:437
+msgid "grid: "
+msgstr ""
+
+#: src/scsvlog/ScsvLog.scala:441
+msgid "Enable X grid"
+msgstr ""
+
+#: src/scsvlog/ScsvLog.scala:450
+msgid "Enable Y grid"
+msgstr ""
+
+#: src/scsvlog/ScsvLog.scala:457
 msgid "show"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:442
+#: src/scsvlog/ScsvLog.scala:465
 msgid "name"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:449
+#: src/scsvlog/ScsvLog.scala:472
 msgid "Y axis"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:459
+#: src/scsvlog/ScsvLog.scala:482
 msgid "color"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:466
+#: src/scsvlog/ScsvLog.scala:489
 msgid "width"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:475
+#: src/scsvlog/ScsvLog.scala:498
 msgid "style"
 msgstr ""
 
-#: src/scsvlog/ScsvLog.scala:496
+#: src/scsvlog/ScsvLog.scala:519
 msgid "Config"
 msgstr ""

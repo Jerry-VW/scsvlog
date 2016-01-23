@@ -36,7 +36,12 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     var trace0:ITrace2D = null
     
     def tracesCount = _chart.getTraces.size()
-    def addAxisRight = _chart.addAxisYRight(new axis.AxisLinear)
+    def addAxisRight(show:Boolean) = { _chart.addAxisYRight(new axis.AxisLinear); showAxisRight(show) }
+    def showAxisLeft(show:Boolean) = _chart.getAxisY.setVisible(show)
+    def showAxisRight(show:Boolean) = _chart.getAxesYRight.get(0).setVisible(show)
+    def showGridX(show:Boolean) = _chart.getAxisX.setPaintGrid(show)
+    def showGridY(show:Boolean) = _chart.getAxisY.setPaintGrid(show)
+    def showGridYRight(show:Boolean) = _chart.getAxesYRight.get(0).setPaintGrid(show)
     def addTrace(name:String, color:String, show:Boolean, width:Double, style:Int, yAxisRight:Boolean=false){
         _chart.addTrace(new traces.Trace2DSorted, _chart.getAxisX, if (yAxisRight) _chart.getAxesYRight.get(0) else _chart.getAxisY)
         val i = tracesCount-1

@@ -433,6 +433,22 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 }
                                 tooltip = tr("Y window maximum")
                             }
+                            ,new swing.Label(" | ")
+                            ,new swing.Label(tr("grid: "))
+                            ,new swing.CheckBox {
+                                action = new swing.Action("x"){ def apply() = { ini.put("gridX", selected); chart.showGridX(selected) }}
+                                selected = ini.getB("gridX",false)
+                                tooltip = tr("Enable X grid")
+                            }
+                            ,new swing.CheckBox {
+                                action = new swing.Action("y"){ def apply() = {
+                                    ini.put("gridY", selected)
+                                    chart.showGridY(selected)
+                                    chart.showGridYRight(selected)
+                                }}
+                                selected = ini.getB("gridY",false)
+                                tooltip = tr("Enable Y grid")
+                            }
                             ,swing.Swing.HGlue
                         )
                     }
@@ -513,15 +529,19 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     contents += swing.Swing.HGlue
                 }
                 ,new scl.Chart { top.chart = this; xName(ini.get("xLabel","x")); yName(ini.get("yLabel","y"));
-                    addAxisRight
+                    addAxisRight(false)
                     for (i <- 1 to channelsCount){
                         addTrace(ini.get("name"+i,"Y"+i), colors.current(i-1), ini.getB("show"+i,false),
                             ini.getD("width"+i,1.0), ini.getI("style"+i,0), ini.getI("yAxis"+i,0) == 1
                         )
+                        if (ini.getI("yAxis"+i,0) == 1) showAxisRight(true)
                     }
                     rangeX(ini.getD("winXmin",0),ini.getD("winXmax",0))
                     rangeY(ini.getD("winYmin",0),ini.getD("winYmax",0))
                     xLimit.set( ini.getI("xLimit",0) )
+                    showGridX(ini.getB("gridX",false))
+                    showGridY(ini.getB("gridY",false))
+                    showGridYRight(ini.getB("gridY",false))
                 }
                 ,new swing.BoxPanel(swing.Orientation.Horizontal){
                     contents ++= List(
