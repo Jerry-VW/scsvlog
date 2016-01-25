@@ -99,16 +99,25 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     
     // save snapshot dialog
     val snapshotDialog = new swing.FileChooser{
-        title        = "Save as PNG..."
+        title        = tr("Save as PNG...")
         fileFilter   = new FileNameExtensionFilter("PNG file","png")
-        selectedFile = new java.io.File(".")
+        selectedFile = new java.io.File("snapshot.png")
     }
+    val snapshotDateFormatter = new java.text.SimpleDateFormat("yyMMdd_HHmm")
     // save snapshot button
-    def snapshotSave = {
+    def snapshotSave(withDate:Boolean):Boolean = {
+        if (withDate) snapshotDialog.selectedFile =
+            new java.io.File(snapshotDialog.selectedFile.getParent + java.io.File.separator + snapshotDateFormatter.format(new java.util.Date) + ".png")
         if (snapshotDialog.showSaveDialog(null) == swing.FileChooser.Result.Approve){
-            try { javax.imageio.ImageIO.write( _chart.snapShot, "png", snapshotDialog.selectedFile )
-            } catch { case _:Throwable => }
-        }
+            if ( !snapshotDialog.selectedFile.exists || (snapshotDialog.selectedFile.exists &&
+                (swing.Dialog.showConfirmation(null, tr("Replace ?"), tr("Confirm replace"), swing.Dialog.Options.YesNo, swing.Dialog.Message.Question) == swing.Dialog.Result.Yes))){
+                try {
+                    javax.imageio.ImageIO.write( _chart.snapShot, "png", snapshotDialog.selectedFile )
+                    true
+                } catch { case _:Throwable => false }
+            } else false
+        } else false
     }
+    
     peer.add(_chart)
 }

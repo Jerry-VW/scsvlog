@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: ScsvLog 1.0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-01-23 21:02+0200\n"
-"PO-Revision-Date: 2016-01-23 21:06+0200\n"
+"POT-Creation-Date: 2016-01-25 17:55+0200\n"
+"PO-Revision-Date: 2016-01-25 17:56+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: RU\n"
@@ -18,241 +18,291 @@ msgstr ""
 "X-Generator: Poedit 1.5.4\n"
 "X-Poedit-SourceCharset: UTF-8\n"
 
-#: src/scsvlog/ScsvLog.scala:171
-msgid "port"
-msgstr "порт"
+#: src/scl/Chart.scala:102
+msgid "Save as PNG..."
+msgstr "Записать в PNG..."
 
-#: src/scsvlog/ScsvLog.scala:173
-msgid "Show port configuration"
-msgstr "Настройки порта"
-
-#: src/scsvlog/ScsvLog.scala:176
-msgid "config"
-msgstr "настройка"
-
-#: src/scsvlog/ScsvLog.scala:178
-msgid "Show chart/channels configuration"
-msgstr "Настройки графика/каналов"
-
-#: src/scsvlog/ScsvLog.scala:181
-msgid "values"
-msgstr "значения"
-
-#: src/scsvlog/ScsvLog.scala:183
-msgid "Show values"
-msgstr "Показать значения"
-
-#: src/scsvlog/ScsvLog.scala:187
-msgid "chart"
-msgstr "график"
-
-#: src/scsvlog/ScsvLog.scala:189
-msgid "Enable chart"
-msgstr "Включить запись графика"
-
-#: src/scsvlog/ScsvLog.scala:191
-msgid "reset"
-msgstr "сброс"
-
-#: src/scsvlog/ScsvLog.scala:191
-msgid "Clear all data"
-msgstr "Очистить все данные"
-
-#: src/scsvlog/ScsvLog.scala:193
-msgid "Save chart to PNG"
-msgstr "Записать график в PNG"
-
-#: src/scsvlog/ScsvLog.scala:198
+#: src/scl/Chart.scala:113 src/scsvlog/ScsvLog.scala:100
 msgid "Replace ?"
 msgstr "Заменить ?"
 
-#: src/scsvlog/ScsvLog.scala:198
+#: src/scl/Chart.scala:113 src/scsvlog/ScsvLog.scala:100
 msgid "Confirm replace"
 msgstr "Подтвердите замену"
 
-#: src/scsvlog/ScsvLog.scala:203
+#: src/scsvlog/ScsvLog.scala:96
+msgid "Save CSV..."
+msgstr "Записать CSV..."
+
+#: src/scsvlog/ScsvLog.scala:109
+msgid "Load CSV..."
+msgstr "Прочитать CSV..."
+
+#: src/scsvlog/ScsvLog.scala:199
+msgid "port"
+msgstr "порт"
+
+#: src/scsvlog/ScsvLog.scala:201
+msgid "Show port configuration"
+msgstr "Настройки порта"
+
+#: src/scsvlog/ScsvLog.scala:204
+msgid "config"
+msgstr "настройка"
+
+#: src/scsvlog/ScsvLog.scala:206
+msgid "Show chart/channels configuration"
+msgstr "Настройки графика/каналов"
+
+#: src/scsvlog/ScsvLog.scala:209
+msgid "values"
+msgstr "значения"
+
+#: src/scsvlog/ScsvLog.scala:211
+msgid "Show values"
+msgstr "Показать значения"
+
+#: src/scsvlog/ScsvLog.scala:215
+msgid "chart"
+msgstr "график"
+
+#: src/scsvlog/ScsvLog.scala:217
+msgid "Enable chart"
+msgstr "Включить запись графика"
+
+#: src/scsvlog/ScsvLog.scala:219
+msgid "reset"
+msgstr "сброс"
+
+#: src/scsvlog/ScsvLog.scala:219
+msgid "Clear all data"
+msgstr "Очистить все данные"
+
+#: src/scsvlog/ScsvLog.scala:223
+msgid "Save chart to PNG"
+msgstr "Записать график в PNG"
+
+#: src/scsvlog/ScsvLog.scala:225
+msgid "save"
+msgstr "записать"
+
+#: src/scsvlog/ScsvLog.scala:226
 msgid "Save data to CSV"
 msgstr "Записать данные в CSV"
 
-#: src/scsvlog/ScsvLog.scala:205
-msgid "auto"
-msgstr "авто"
+#: src/scsvlog/ScsvLog.scala:227
+msgid "load"
+msgstr "прочитать"
 
-#: src/scsvlog/ScsvLog.scala:207
-msgid "Automatic periodic CSV save"
-msgstr "Автоматическая запись CSV"
+#: src/scsvlog/ScsvLog.scala:228
+msgid "Load data from CSV"
+msgstr "Прочитать данные из CSV"
 
-#: src/scsvlog/ScsvLog.scala:219
+#: src/scsvlog/ScsvLog.scala:244
 msgid "Select current Look&Feel"
 msgstr "Выбрать текущий вид"
 
-#: src/scsvlog/ScsvLog.scala:229
+#: src/scsvlog/ScsvLog.scala:254
 msgid "Select current language"
 msgstr "Выбрать текущий язык"
 
-#: src/scsvlog/ScsvLog.scala:233
+#: src/scsvlog/ScsvLog.scala:258
 msgid "connect"
 msgstr "подключить"
 
-#: src/scsvlog/ScsvLog.scala:258
+#: src/scsvlog/ScsvLog.scala:284
 msgid "Connect to port"
 msgstr "Подключиться к порту"
 
-#: src/scsvlog/ScsvLog.scala:259
+#: src/scsvlog/ScsvLog.scala:285
 msgid "disconnect"
 msgstr "отключить"
 
-#: src/scsvlog/ScsvLog.scala:268
+#: src/scsvlog/ScsvLog.scala:295
 msgid "Disconnect from port"
 msgstr "Отключить порт"
 
-#: src/scsvlog/ScsvLog.scala:272
+#: src/scsvlog/ScsvLog.scala:299
 msgid "Port"
 msgstr "Порт"
 
-#: src/scsvlog/ScsvLog.scala:283
+#: src/scsvlog/ScsvLog.scala:310
 msgid "Select channel"
 msgstr "Выбрать канал"
 
-#: src/scsvlog/ScsvLog.scala:296
+#: src/scsvlog/ScsvLog.scala:323
 msgid "Socket IP address and port"
 msgstr "Выбрать IP адрес и порт"
 
-#: src/scsvlog/ScsvLog.scala:299
+#: src/scsvlog/ScsvLog.scala:326
 msgid " baud:"
 msgstr " скорость:"
 
-#: src/scsvlog/ScsvLog.scala:307
+#: src/scsvlog/ScsvLog.scala:334
 msgid "Serial port baud rate"
 msgstr "Скорость посл.порта"
 
-#: src/scsvlog/ScsvLog.scala:309
+#: src/scsvlog/ScsvLog.scala:336
 msgid " bits:"
 msgstr " биты:"
 
-#: src/scsvlog/ScsvLog.scala:316
+#: src/scsvlog/ScsvLog.scala:343
 msgid "Serial port data bits"
 msgstr "Биты данных посл.порта"
 
-#: src/scsvlog/ScsvLog.scala:318
+#: src/scsvlog/ScsvLog.scala:345
 msgid " parity:"
 msgstr " парность:"
 
-#: src/scsvlog/ScsvLog.scala:325
+#: src/scsvlog/ScsvLog.scala:352
 msgid "Serial port parity"
 msgstr "Парность посл.порта"
 
-#: src/scsvlog/ScsvLog.scala:327
+#: src/scsvlog/ScsvLog.scala:354
 msgid " stops:"
 msgstr " стопы:"
 
-#: src/scsvlog/ScsvLog.scala:334
+#: src/scsvlog/ScsvLog.scala:361
 msgid "Serial port stop bits"
 msgstr "Стоп-биты посл.порта"
 
-#: src/scsvlog/ScsvLog.scala:348
+#: src/scsvlog/ScsvLog.scala:375
 msgid "X axis label"
 msgstr "Метка по оси X"
 
-#: src/scsvlog/ScsvLog.scala:351
+#: src/scsvlog/ScsvLog.scala:378
 msgid "line №"
 msgstr "№ строки"
 
-#: src/scsvlog/ScsvLog.scala:351
+#: src/scsvlog/ScsvLog.scala:378
 msgid "1st col"
 msgstr "1ая колонка"
 
-#: src/scsvlog/ScsvLog.scala:351
+#: src/scsvlog/ScsvLog.scala:378
 msgid "date"
 msgstr "дата"
 
-#: src/scsvlog/ScsvLog.scala:359
+#: src/scsvlog/ScsvLog.scala:386
 msgid "X axis type"
 msgstr "Тип оси Х"
 
-#: src/scsvlog/ScsvLog.scala:367
+#: src/scsvlog/ScsvLog.scala:394
 msgid "X date/time format"
 msgstr "Формат даты по оси Х"
 
-#: src/scsvlog/ScsvLog.scala:369
+#: src/scsvlog/ScsvLog.scala:396
 msgid " limit: "
 msgstr " лимит: "
 
-#: src/scsvlog/ScsvLog.scala:378
+#: src/scsvlog/ScsvLog.scala:405
 msgid "Limit number of points"
 msgstr "Ограничить количество точек"
 
-#: src/scsvlog/ScsvLog.scala:380
+#: src/scsvlog/ScsvLog.scala:407
 msgid " skip: "
 msgstr " пропуск: "
 
-#: src/scsvlog/ScsvLog.scala:388
+#: src/scsvlog/ScsvLog.scala:415
 msgid "Skip CSV lines"
 msgstr "Пропуск строк"
 
-#: src/scsvlog/ScsvLog.scala:396
+#: src/scsvlog/ScsvLog.scala:423
 msgid "Y axis label"
 msgstr "Метка по оси Y"
 
-#: src/scsvlog/ScsvLog.scala:399
+#: src/scsvlog/ScsvLog.scala:426
 msgid "window"
 msgstr "окно"
 
-#: src/scsvlog/ScsvLog.scala:407
+#: src/scsvlog/ScsvLog.scala:434
 msgid "X window minimum"
 msgstr "Минимум окна по оси X"
 
-#: src/scsvlog/ScsvLog.scala:416
+#: src/scsvlog/ScsvLog.scala:443
 msgid "X window maximum"
 msgstr "Максимум окна по оси X"
 
-#: src/scsvlog/ScsvLog.scala:425
+#: src/scsvlog/ScsvLog.scala:452
 msgid "Y window minimum"
 msgstr "Минимум окна по оси Y"
 
-#: src/scsvlog/ScsvLog.scala:434
+#: src/scsvlog/ScsvLog.scala:461
 msgid "Y window maximum"
 msgstr "Максимум окна по оси Y"
 
-#: src/scsvlog/ScsvLog.scala:437
+#: src/scsvlog/ScsvLog.scala:464
 msgid "grid: "
 msgstr "сетка: "
 
-#: src/scsvlog/ScsvLog.scala:441
+#: src/scsvlog/ScsvLog.scala:468
 msgid "Enable X grid"
 msgstr "Сетка по оси X"
 
-#: src/scsvlog/ScsvLog.scala:450
+#: src/scsvlog/ScsvLog.scala:477
 msgid "Enable Y grid"
 msgstr "Сетка по оси Y"
 
-#: src/scsvlog/ScsvLog.scala:457
+#: src/scsvlog/ScsvLog.scala:484
 msgid "show"
 msgstr "видимость"
 
-#: src/scsvlog/ScsvLog.scala:465
+#: src/scsvlog/ScsvLog.scala:484
+msgid "Trace visibility"
+msgstr "Видимость линии"
+
+#: src/scsvlog/ScsvLog.scala:492
 msgid "name"
 msgstr "имя"
 
-#: src/scsvlog/ScsvLog.scala:472
+#: src/scsvlog/ScsvLog.scala:492
+msgid "Trace name"
+msgstr "Имя линии"
+
+#: src/scsvlog/ScsvLog.scala:499
 msgid "Y axis"
 msgstr "ось Y"
 
-#: src/scsvlog/ScsvLog.scala:482
+#: src/scsvlog/ScsvLog.scala:499
+msgid "Number of Y axis"
+msgstr "Номер шкалы Y"
+
+#: src/scsvlog/ScsvLog.scala:509
 msgid "color"
 msgstr "цвет"
 
-#: src/scsvlog/ScsvLog.scala:489
+#: src/scsvlog/ScsvLog.scala:509
+msgid "Trace color"
+msgstr "Цвет линии"
+
+#: src/scsvlog/ScsvLog.scala:516
 msgid "width"
 msgstr "толщина"
 
-#: src/scsvlog/ScsvLog.scala:498
+#: src/scsvlog/ScsvLog.scala:516
+msgid "Trace width"
+msgstr "Толщина линии"
+
+#: src/scsvlog/ScsvLog.scala:525
 msgid "style"
 msgstr "стиль"
 
-#: src/scsvlog/ScsvLog.scala:519
+#: src/scsvlog/ScsvLog.scala:525
+msgid "Trace style"
+msgstr "Стиль линии"
+
+#: src/scsvlog/ScsvLog.scala:536
+msgid "Value correction"
+msgstr "Коррекция значения"
+
+#: src/scsvlog/ScsvLog.scala:546
 msgid "Config"
 msgstr "Настройки"
+
+#~ msgid "auto"
+#~ msgstr "авто"
+
+#~ msgid "Automatic periodic CSV save"
+#~ msgstr "Автоматическая запись CSV"
 
 #~ msgid " port:"
 #~ msgstr " порт:"

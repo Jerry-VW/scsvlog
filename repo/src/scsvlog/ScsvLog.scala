@@ -28,6 +28,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         var chart:scl.Chart                   = null
         var xTypeCombo:swing.ComboBox[String] = null
         var xDateFormatText:swing.TextField   = null
+        var csvLoadButton:swing.Button        = null
+        var csvSaveButton:swing.Button        = null
 
         val channelsCount = 10
     
@@ -83,16 +85,41 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         object csv {
             val lines  = new collection.mutable.ArrayBuffer[String]
             val dateFormatter = new java.text.SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss")//"yyyy-MM-dd'T'HH:mm:ss.SSSZ")
+            val saveDateFormatter = new java.text.SimpleDateFormat("yyMMdd_HHmm")
             val separator = ";"
             // save CSV dialog
-            val saveDialog = new swing.FileChooser{
-                title        = "Save CSV..."
+            val dialog = new swing.FileChooser{
                 fileFilter   = new javax.swing.filechooser.FileNameExtensionFilter("CSV file","csv")
                 selectedFile = new java.io.File(ini.get("csvFile", "data.csv"))
             }
             def save = {
-                if (lines.nonEmpty){
-                    try { java.nio.file.Files.write(saveDialog.selectedFile.toPath, lines.mkString("\r\n").getBytes("UTF-8"))
+                dialog.title = tr("Save CSV...")
+                dialog.selectedFile = new java.io.File(dialog.selectedFile.getParent + java.io.File.separator + saveDateFormatter.format(new java.util.Date) + ".csv")
+                if (lines.nonEmpty && (dialog.showSaveDialog(null) == swing.FileChooser.Result.Approve)){
+                    if ( !dialog.selectedFile.exists || (dialog.selectedFile.exists &&
+                        (swing.Dialog.showConfirmation(null, tr("Replace ?"), tr("Confirm replace"), swing.Dialog.Options.YesNo, swing.Dialog.Message.Question) == swing.Dialog.Result.Yes))){
+                        try {
+                            java.nio.file.Files.write(dialog.selectedFile.toPath, lines.mkString("\r\n").getBytes("UTF-8"))
+                        } catch { case _:Throwable => }
+                        ini.put("csvFile", csv.dialog.selectedFile.getCanonicalPath )
+                    }
+                }
+            }
+            def load = {
+                dialog.title = tr("Load CSV...")
+                if (dialog.showOpenDialog(null) == swing.FileChooser.Result.Approve){
+                    ini.put("csvFile", dialog.selectedFile.getCanonicalPath )
+                    resetAll
+                    try {
+                        io.Source.fromFile(dialog.selectedFile, "UTF-8").getLines.foreach { l =>
+                            val ls = l.split(separator)
+                            if (ls.length > 2){
+                                chart.addPoints(
+                                    if (ls(0).contains(":")) dateFormatter.parse(ls(0)).getTime else ls(0).toDouble,
+                                    ls.tail.map { _.toDouble }
+                                )
+                            }
+                        }
                     } catch { case _:Throwable => }
                 }
             }
@@ -158,6 +185,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         // clear all data
         def resetAll = {
             chart.clearPoints
+            chart.xAxisFormat(ini.getI("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
             pollTimer.lineNum.set(0)
             csv.lines.clear
         }
@@ -190,22 +218,19 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         }
                         ,new swing.Button(new swing.Action(tr("reset")){ def apply = resetAll }){ tooltip = tr("Clear all data") }
                         ,new swing.Label(" | ")
-                        ,new swing.Button(new swing.Action("->PNG"){ def apply = chart.snapshotSave }){ tooltip = tr("Save chart to PNG") }
-                        ,new swing.Label(" | ")
-                        ,new swing.Button(new swing.Action("->CSV"){ def apply = {
-                            if (csv.lines.nonEmpty && ( csv.saveDialog.showSaveDialog(null) == swing.FileChooser.Result.Approve)){
-                                if ( !csv.saveDialog.selectedFile.exists || (csv.saveDialog.selectedFile.exists &&
-                                    (swing.Dialog.showConfirmation(null, tr("Replace ?"), tr("Confirm replace"), swing.Dialog.Options.YesNo, swing.Dialog.Message.Question) == swing.Dialog.Result.Yes))){
-                                    csv.save
-                                    ini.put("csvFile", csv.saveDialog.selectedFile.getCanonicalPath )
-                                }
-                            }
-                        }}){ tooltip = tr("Save data to CSV") }
-                        ,new swing.CheckBox {
-                            action = new swing.Action(tr("auto")){ def apply() = ini.put("csvAuto", selected) }
-                            selected = false // ini.getB("csvAuto",false)
-                            tooltip = tr("Automatic periodic CSV save")
-                        }
+                        ,new swing.Button(new swing.Action("->PNG"){ def apply = {
+                            if (chart.snapshotSave(true)) ini.put("pngFile", chart.snapshotDialog.selectedFile.getCanonicalPath)
+                        }}){ tooltip = tr("Save chart to PNG") }
+                        ,new swing.Label(" | CSV ")
+                        ,new swing.Button(new swing.Action(tr("save")){ def apply = { csv.save
+                        }}){ tooltip = tr("Save data to CSV"); csvSaveButton = this }
+                        ,new swing.Button(new swing.Action(tr("load")){ def apply = { csv.load
+                        }}){ tooltip = tr("Load data from CSV"); csvLoadButton = this }
+//                        ,new swing.CheckBox {
+//                            action = new swing.Action(tr("auto")){ def apply() = ini.put("csvAuto", selected) }
+//                            selected = false // ini.getB("csvAuto",false)
+//                            tooltip = tr("Automatic periodic CSV save")
+//                        }
                         ,new swing.Label(" | ")
                         ,new swing.Label(" L&F: ")
                         ,new swing.ComboBox(Config.lafsNames){ maximumSize = preferredSize
@@ -244,8 +269,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                         propSet("stops",ini.get("stops",1.0))
                                     }
                                 }
-                                chart.clearPoints
-                                chart.xAxisFormat(ini.getI("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
+                                
+                                resetAll
                                 
                                 connectButton.visible    = false
                                 portPanel.visible        = false
@@ -253,6 +278,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 xTypeCombo.enabled       = false
                                 xDateFormatText.enabled  = false
                                 disconnectButton.visible = true
+                                csvLoadButton.enabled    = false
                                 channelOpened.set(true)
                             } catch { case _:Throwable => }
                         }}){ connectButton = this; tooltip = tr("Connect to port") }
@@ -265,6 +291,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             portPanel.visible            = true
                             xTypeCombo.enabled           = true
                             xDateFormatText.enabled      = true
+                            csvLoadButton.enabled        = true
                         }}){ disconnectButton = this; visible = false; tooltip = tr("Disconnect from port") }
                     )
                 }
@@ -454,7 +481,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     }
                     ,new swing.GridPanel(7,channelsCount+1){ maximumSize = new swing.Dimension(Integer.MAX_VALUE,150)
                         border = new EtchedBorder
-                        contents += new swing.Label(tr("show"))
+                        contents += new swing.Label(tr("show")){ tooltip = tr("Trace visibility") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.CheckBox { maximumSize = preferredSize
                                 action = new swing.Action(i.toString){
@@ -462,14 +489,14 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 }
                                 selected = ini.getB("show"+i, false)
                         })
-                        contents += new swing.Label(tr("name"))
+                        contents += new swing.Label(tr("name")){ tooltip = tr("Trace name") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.TextField(8){
                                 text = ini.get("name"+i,"Y"+i)
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("name"+i, text); chart.traceName(i-1,text) }
                         })
-                        contents += new swing.Label(tr("Y axis"))
+                        contents += new swing.Label(tr("Y axis")){ tooltip = tr("Number of Y axis") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield (new swing.ComboBox(List(1,2)){
                                 selection.index = ini.getI("yAxis"+i,0)
@@ -479,14 +506,14 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 }
                             })
                         )
-                        contents += new swing.Label(tr("color"))
+                        contents += new swing.Label(tr("color")){ tooltip = tr("Trace color") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.Button(""){ val _but = this; background = SwUtil.svgColor(colors.current(i-1));
                                 action = new swing.Action(""){ def apply = {
                                     colors.chooser.openColor( colors.current(i-1), { c:String => _but.background = colors.set(i-1,c); chart.traceColor(i-1,colors.current(i-1)) })
                             }}}
                         )
-                        contents += new swing.Label(tr("width"))
+                        contents += new swing.Label(tr("width")){ tooltip = tr("Trace width") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
                                 text = ini.get("width"+i,1)
@@ -495,7 +522,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     ini.put("width"+i,text); chart.traceStyle(i-1,ini.getD("width"+i,1.0),ini.getI("style"+i,0))
                                 }
                         })
-                        contents += new swing.Label(tr("style"))
+                        contents += new swing.Label(tr("style")){ tooltip = tr("Trace style") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield (new swing.ComboBox(List("───────","· · · ·","─ ─ ─ ─")){
                                 selection.index = ini.getI("style"+i,0)
@@ -506,7 +533,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 }
                             })
                         )
-                        contents += new swing.Label("Δ")
+                        contents += new swing.Label("Δ"){ tooltip = tr("Value correction") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
                                 text = ini.get("yAdd"+i,0)
@@ -542,6 +569,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     showGridX(ini.getB("gridX",false))
                     showGridY(ini.getB("gridY",false))
                     showGridYRight(ini.getB("gridY",false))
+                    snapshotDialog.selectedFile = new java.io.File(ini.get("pngFile", "snapshot.png"))
                 }
                 ,new swing.BoxPanel(swing.Orientation.Horizontal){
                     contents ++= List(
