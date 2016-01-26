@@ -396,7 +396,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 text = ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss")
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("xLabelDate",text) }
-                                tooltip = tr("X date/time format")
+                                tooltip = tr("<html>X axis date/time format:<br>" +
+                                    "<b>y</b> - year, <b>M</b> - month, <b>d</b> - date;<br>" +
+                                    "<b>H</b> - hour, <b>m</b> - minute, <b>s</b> - second;<br>" +
+                                    "<b>'single quotes'</b> - plain text.</html>")
                             }
                             ,new swing.Label(tr(" limit: "))
                             ,new swing.ComboBox(List(0,100,500,1000,5000,10000,20000,50000,100000)){ maximumSize = preferredSize
