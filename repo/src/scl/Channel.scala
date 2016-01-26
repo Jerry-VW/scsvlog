@@ -3,6 +3,9 @@ package scl
 trait Channel {
     def channels:Seq[String] = Nil
     
+    var _name = ""
+    def name = _name
+    
     def open(name:String):Boolean
     def opened:Boolean
     def close

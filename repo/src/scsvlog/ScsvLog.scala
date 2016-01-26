@@ -9,7 +9,7 @@ import scl.SwUtil
 object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
     val app = this
 
-    def top = new swing.MainFrame { title = "CSV log"
+    def top = new swing.MainFrame { title = Config.title
         val top                               = this
         val ini                               = Config.ini   
 
@@ -120,6 +120,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 )
                             }
                         }
+                        top.title = Config.title + " : " + dialog.selectedFile.getCanonicalPath
                     } catch { case _:Throwable => }
                 }
             }
@@ -270,21 +271,25 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     }
                                 }
                                 
-                                resetAll
-                                
-                                connectButton.visible    = false
-                                portPanel.visible        = false
-                                portOn.selected          = false
-                                xTypeCombo.enabled       = false
-                                xDateFormatText.enabled  = false
-                                disconnectButton.visible = true
-                                csvLoadButton.enabled    = false
-                                channelOpened.set(true)
+                                if (channel.opened){
+                                    top.title = Config.title + " : " + channel.name
+                                    resetAll
+                                    
+                                    connectButton.visible    = false
+                                    portPanel.visible        = false
+                                    portOn.selected          = false
+                                    xTypeCombo.enabled       = false
+                                    xDateFormatText.enabled  = false
+                                    disconnectButton.visible = true
+                                    csvLoadButton.enabled    = false
+                                    channelOpened.set(true)
+                                }
                             } catch { case _:Throwable => }
                         }}){ connectButton = this; tooltip = tr("Connect to port") }
                         ,new swing.Button(new swing.Action(tr("disconnect")){ def apply = { println("disconnect...")
                             channelOpened.set(false)
                             if (channel != null){ channel.close; channel = null }
+                            top.title                    = Config.title
                             connectButton.visible        = true
                             disconnectButton.visible     = false
                             portOn.selected              = true

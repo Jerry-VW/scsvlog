@@ -7,6 +7,7 @@ class ChannelSocketTCP extends Channel {
         try {
             val ns = name.split(":")
             socket = new java.net.Socket(java.net.InetAddress.getByName(ns(0)), if (ns.length == 2) ns(1).toInt else 8080)
+            _name  = name
         } catch { case _:Throwable => socket = null }
         opened
     }

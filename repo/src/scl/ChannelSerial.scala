@@ -11,6 +11,7 @@ class ChannelSerial extends Channel {
         try {
             if (opened) close
             port = CommPortIdentifier.getPortIdentifier(name).open("SerialPJC@" + name, 100).asInstanceOf[SerialPort]
+            _name = name
         } catch { case _:Throwable => port = null }
         opened
     }

@@ -17,6 +17,8 @@ object Config {
     
     // load localization
     scl.GetText.init(ini.getI("lang",0))
+    
+    val title = "CSV log"
 
     // set L&F
     javax.swing.UIManager.setLookAndFeel(lafs(ini.getI("laf",0)))
