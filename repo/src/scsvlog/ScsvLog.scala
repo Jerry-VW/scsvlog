@@ -5,6 +5,7 @@ import scala.language.{reflectiveCalls,existentials}
 import javax.swing.border.{TitledBorder,LineBorder,EtchedBorder}
 import java.util.concurrent.atomic
 import scl.SwUtil
+import javax.servlet.http.{HttpServletRequest, HttpServletResponse}, org.eclipse.{jetty}
 
 object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
     val app = this
@@ -13,25 +14,31 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         val top                               = this
         val ini                               = Config.ini   
 
-        var channel:scl.Channel               = null
-        val channelOpened                     = new atomic.AtomicBoolean(false)
+        var channel:scl.Channel                 = null
+        val channelOpened                       = new atomic.AtomicBoolean(false)
 
-        var portOn:swing.CheckBox             = null
-        var portPanel:swing.BoxPanel          = null
-        var serialPanel:swing.BoxPanel        = null
-        var configPanel:swing.BoxPanel        = null
-        var valuesPanel:swing.BoxPanel        = null
-        var ipText:swing.TextField            = null
-        var connectButton:swing.Button        = null
-        var disconnectButton:swing.Button     = null
-        var statusText:swing.Label            = null
-        var chart:scl.Chart                   = null
-        var xTypeCombo:swing.ComboBox[String] = null
-        var xDateFormatText:swing.TextField   = null
-        var csvLoadButton:swing.Button        = null
-        var csvSaveButton:swing.Button        = null
+        var portOn:swing.CheckBox               = null
+        var portPanel:swing.BoxPanel            = null
+        var serialPanel:swing.BoxPanel          = null
+        var configPanel:swing.BoxPanel          = null
+        var valuesPanel:swing.BoxPanel          = null
+        var ipText:swing.TextField              = null
+        var connectButton:swing.Button          = null
+        var disconnectButton:swing.Button       = null
+        var statusText:swing.Label              = null
+        var chart:scl.Chart                     = null
+        var xTypeCombo:swing.ComboBox[String]   = null
+        var xDateFormatText:swing.TextField     = null
+        var csvLoadButton:swing.Button          = null
+        var csvSaveButton:swing.Button          = null
+        
+        val channelsCount                       = 10
 
-        val channelsCount = 10
+        var serverPortCombo:swing.ComboBox[Int] = null
+        var server:scl.ServerJetty              = null
+        val serverData                          = new java.util.concurrent.atomic.AtomicReferenceArray[Double](channelsCount){
+            for (i <- 0 until channelsCount) set(i, Double.NaN)
+        }
     
         object values {
             val labels = new collection.mutable.ArrayBuffer[swing.Label]
@@ -146,7 +153,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         val ys = l.replaceAll(";","").replaceAll(",","").replaceAll("\r","").split("\\s+").toBuffer[String]
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
                         val y = (ys.map { _.toDouble }); //println(y.mkString(","))
-                        for (i <- 0 until y.length if (!y(i).isNaN)) y(i) += ini.getD("yAdd"+i,0)
+                        for (i <- 0 until y.length if (!y(i).isNaN)){
+                            y(i) += ini.getD("yAdd"+i,0)
+                            serverData.lazySet(i, y(i))
+                        }
                         if (y.length > 0){
                             if (ini.getI("xType",0) == 1){ x = y(0); y.trimStart(1) }
                             else if (ini.getI("xType",0) == 2) x = System.currentTimeMillis
@@ -253,6 +263,26 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 ini.put("lang", selection.index)
                             }
                             tooltip = tr("Select current language")
+                        }
+                        ,new swing.Label(" | ")
+                        ,new swing.CheckBox {
+                            action = new swing.Action(tr("server")){ def apply() = {
+                                ini.put("server", selected)
+                                serverPortCombo.visible = selected
+                            }}
+                            selected = ini.getB("server",false)
+                            tooltip = tr("Enable server")
+                        }
+                        ,new swing.ComboBox(List(80,8080,8090,9000)){ maximumSize = preferredSize
+                            visible = ini.getB("server",false)
+                            makeEditable()(swing.ComboBox.intEditor)
+                            selection.item = ini.getI("serverPort",8090)
+                            listenTo(selection)
+                            reactions += { case swing.event.SelectionChanged(_) =>
+                                ini.put("serverPort", selection.item)
+                            }
+                            tooltip = tr("Server port")
+                            serverPortCombo = this
                         }
                         ,new swing.Label(" | ")
                         ,swing.Swing.HGlue
@@ -593,6 +623,31 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         preferredSize = new swing.Dimension( bounds.width, bounds.height )
         if (ini.getB("maximized", false)) maximize
         
+        // start server
+        if (ini.getB("server",false)){
+            new java.lang.Thread {
+                override def run = {
+                    server = new scl.ServerJetty( ini.getI("serverPort",8090), "./static", 0 ){
+                        override def newHandler(target:String, baseRequest:jetty.server.Request, request:HttpServletRequest, response:HttpServletResponse) =
+                            new scl.HandlerJetty(target, baseRequest, request, response){
+                            val _handler = this
+                            override def handle:Boolean = {
+                                try { target match {
+                                    case "/values.json" =>
+                                        response.setContentType("application/json")
+                                        responseStr = "[" + (for (i <- 0 until channelsCount) yield serverData.get(i)).mkString(",") + "]"
+                                        handled = true
+                                }} catch { case _:Throwable => }
+                                super.handle
+                            }
+                        }
+                    }
+                    server.start
+                }
+                start
+            }
+        }
+        
         // save configuration on close
         override def closeOperation() {
             ini.put("x", bounds.x); ini.put("y", bounds.y);
@@ -600,6 +655,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
             ini.put("maximized", maximized)
             ini.put("colors", colors.current.mkString(","))
             ini.save
+            if (server != null) server.stop(0)
             super.closeOperation()
         }
     }

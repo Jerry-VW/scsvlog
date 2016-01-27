@@ -19,6 +19,7 @@ DIR_DOC     := ./doc
 DIR_TOOLS   := ./tools
 DIR_SETTINGS := ./.settings
 DIR_DB      := ./db
+DIR_STATIC  := ./static
 
 .PHONY: dist repo commit push release locale run doc scripts
 
@@ -28,6 +29,7 @@ dist:
 	cp -R -L $(DIR_LOCALE) $(DIR_DIST)/
 	cp -R -L $(DIR_TOOLS)/*.sh $(DIR_DIST)/
 	cp -R -L $(DIR_TOOLS)/*.bat $(DIR_DIST)/
+	cp -R -L $(DIR_STATIC) $(DIR_DIST)
 	cp -R -L $(SCALA_HOME)/lib/scala-library.jar $(DIR_DIST)/lib
 	cp -R -L $(SCALA_HOME)/lib/scala-swing_2.11-1.0.1.jar $(DIR_DIST)/lib
 	cd $(DIR_BIN) && $(JDK_HOME)/bin/jar -cf ../$(DIR_DIST)/$(PROJECT).jar .
@@ -48,6 +50,7 @@ repo:
 	cp -R -L $(DIR_SRC) $(DIR_REPO)/
 	cp -R -L $(DIR_LIB) $(DIR_REPO)/
 	cp -R -L $(DIR_LOCALE) $(DIR_REPO)/
+	cp -R -L $(DIR_STATIC) $(DIR_REPO)/
 	#cp -R -L $(DIR_SCRIPTS) $(DIR_REPO)/
 	#cp -R -L $(DIR_USERSCRIPTS) $(DIR_REPO)/
 	cp -R -L $(DIR_DOC) $(DIR_REPO)/

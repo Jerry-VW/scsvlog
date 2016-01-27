@@ -11,5 +11,6 @@
 	<classpathentry kind="lib" path="lib/jdbm-1.0.jar"/>
 	<classpathentry kind="lib" path="lib/laf/JTattoo-1.6.11.jar"/>
 	<classpathentry kind="lib" path="lib/laf/pgslookandfeel-1.1.2.jar"/>
+	<classpathentry kind="lib" path="lib/jetty-all-9.3.7.v20160115-uber.jar"/>
 	<classpathentry kind="output" path="bin"/>
 </classpath>
