@@ -71,7 +71,13 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         picker
                         ,new swing.BoxPanel(swing.Orientation.Horizontal){
                             contents ++= List(
-                                new swing.Button(new swing.Action("Ok"){
+                                new swing.ComboBox(List("") ::: SwUtil.svgColors.keys.toList.sorted){ maximumSize = preferredSize
+                                    listenTo(selection)
+                                    reactions += { case swing.event.SelectionChanged(i) => if (selection.item != "") picker.color = SwUtil.svgColor(selection.item) }
+                                    tooltip = tr("Standard color")
+                                }
+                                ,new swing.Label("  ")
+                                ,new swing.Button(new swing.Action("Ok"){
                                     def apply = { selectedColor = SwUtil.svgName(picker.color); chooser.close; callback(selectedColor) }
                                 })
                                 ,new swing.Button(new swing.Action("Cancel"){ def apply = chooser.close })
@@ -635,7 +641,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 try { target match {
                                     case "/values.json" =>
                                         response.setContentType("application/json")
-                                        responseStr = "[" + (for (i <- 0 until channelsCount) yield serverData.get(i)).mkString(",") + "]"
+                                        responseStr = "[" + (0 until channelsCount map(serverData.get(_))).mkString(",") + "]"
                                         handled = true
                                 }} catch { case _:Throwable => }
                                 super.handle
