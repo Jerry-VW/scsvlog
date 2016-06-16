@@ -53,7 +53,7 @@ class Chart extends swing.BoxPanel(swing.Orientation.Vertical) with scl.GetText 
     def trace(i:Int):ITrace2D = (_chart.getTraces().toArray())(i).asInstanceOf[ITrace2D]
     def pointsCount = { if (trace0 == null) trace0 = trace(0); trace0.getSize }
     def addPoints(x:Double, y:Seq[Double]) = {
-        for (i <- 0 until y.length) trace(i).addPoint(x, y(i))
+        for (i <- 0 until y.length if (i < tracesCount)) trace(i).addPoint(x, y(i))
         // remove excess points
         if (xLimit.get > 0) for (t <- _chart.getTraces().toArray()){
             while (t.asInstanceOf[ITrace2D].getSize() > xLimit.get) t.asInstanceOf[ITrace2D].removePoint(

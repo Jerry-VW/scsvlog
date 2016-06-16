@@ -7,7 +7,7 @@ class KvJdbm(fn:String, dbn:String="db") extends Kv {
     if (htId == 0) rm.setNamedObject(dbn, ht.getRecid)
     
     override def put(k:String, v:Any):Any = { map(k) = v.toString; ht.put(k, v.toString); v }
-    override def get(k:String, d:Any):String = {
+    override def get(k:String, d:String):String = {
         if (map.contains(k)) map(k)
         else {
             val v = ht.get(k).asInstanceOf[String]

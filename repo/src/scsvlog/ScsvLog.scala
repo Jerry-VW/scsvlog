@@ -11,8 +11,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
     val app = this
 
     def top = new swing.MainFrame { title = Config.title
-        val top                               = this
-        val ini                               = Config.ini   
+        val top                                 = this
+        val ini                                 = Config.ini   
 
         var channel:scl.Channel                 = null
         val channelOpened                       = new atomic.AtomicBoolean(false)
@@ -32,7 +32,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         var csvLoadButton:swing.Button          = null
         var csvSaveButton:swing.Button          = null
         
-        val channelsCount                       = 10
+        val channelsCount                       = 20
+        val channelsInRow                       = 10
 
         var serverPortCombo:swing.ComboBox[Int] = null
         var server:scl.ServerJetty              = null
@@ -44,19 +45,24 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
             val labels = new collection.mutable.ArrayBuffer[swing.Label]
             val width = 10
             
-            def setText(i:Int, v:Double) = { labels(i).text = ("%" + width + "s").format( if (v.isNaN) "-" else v.toString ) }
+            def setText(i:Int, v:Double) = if (i < channelsCount){ labels(i).text = ("%" + width + "s").format( if (v.isNaN) "-" else v.toString ) }
             def setAllText(v:Seq[Double]) = { for (i <- 0 until v.length) setText(i,v(i)) }
         }
     
         object colors {
-            val available = List("red","magenta","orange","pink","green","blue","cyan","yellow","gray","lightgray","darkgray","black","saddlebrown","tan")
-            val current = ini.get("colors",available.mkString(",")).split(",")
+            val available = Seq("red","magenta","orange","pink","green","blue","cyan","yellow","gray","lightgray","darkgray","black","saddlebrown","tan","brown","darkkhaki","beige","violet","darksalmon","indianred")
+            val current = new collection.mutable.ArrayBuffer[String]{
+                this.++=(available)
+                val cl = ini("colors").split(",")
+                for (i <- 0 until cl.length if (cl(i).nonEmpty)) this.update(i,cl(i))
+            }
             def set(i:Int, cs:String):awt.Color = {
                 current(i) = cs
                 val c = SwUtil.svgColor(cs)
                 values.labels(i).foreground = c
                 c
             }
+            def get(i:Int) = if (i < current.length) current(i) else if (i < available.length) available(i) else "black";
             
             val chooser = new swing.Dialog(top){
                 val chooser  = this
@@ -160,19 +166,19 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
                         val y = (ys.map { _.toDouble }); //println(y.mkString(","))
                         for (i <- 0 until y.length if (!y(i).isNaN)){
-                            y(i) += ini.getD("yAdd"+i,0)
+                            y(i) += ini("yAdd"+i,0)
                             serverData.lazySet(i, y(i))
                         }
                         if (y.length > 0){
-                            if (ini.getI("xType",0) == 1){ x = y(0); y.trimStart(1) }
-                            else if (ini.getI("xType",0) == 2) x = System.currentTimeMillis
+                            if (ini("xType",0) == 1){ x = y(0); y.trimStart(1) }
+                            else if (ini("xType",0) == 2) x = System.currentTimeMillis
                             while (y.length < channelsCount) y.append(Double.NaN)
                             values.setAllText(y)
                             if (lineSkip.get == 0){
-                                lineSkip.set(ini.getI("xSkip",0))
-                                if (ini.getB("chartOn",false)){
+                                lineSkip.set(ini("xSkip",0))
+                                if (ini("chartOn",false)){
                                     chart.addPoints(x, y)
-                                    csv.lines += (if (ini.getI("xType",0) == 2) csv.dateFormatter.format(new java.util.Date(x.toLong)) else x.toString) +
+                                    csv.lines += (if (ini("xType",0) == 2) csv.dateFormatter.format(new java.util.Date(x.toLong)) else x.toString) +
                                         csv.separator + y.mkString(csv.separator)
                                 }
                             } else lineSkip.decrementAndGet
@@ -202,7 +208,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         // clear all data
         def resetAll = {
             chart.clearPoints
-            chart.xAxisFormat(ini.getI("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
+            chart.xAxisFormat(ini("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
             pollTimer.lineNum.set(0)
             csv.lines.clear
         }
@@ -219,39 +225,41 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         }
                         ,new swing.CheckBox {
                             action = new swing.Action(tr("config")){ def apply() = configPanel.visible = ini.put("configOn", selected).asInstanceOf[Boolean] }
-                            selected = ini.getB("configOn", false)
+                            selected = ini("configOn", false)
                             tooltip = tr("Show chart/channels configuration")
                         }
                         ,new swing.CheckBox {
                             action = new swing.Action(tr("values")){ def apply() = valuesPanel.visible = ini.put("valuesOn", selected).asInstanceOf[Boolean] }
-                            selected = ini.getB("valuesOn", false)
+                            selected = ini("valuesOn", false)
                             tooltip = tr("Show values")
                         }
                         ,new swing.Label(" | ")
                         ,new swing.CheckBox {
                             action = new swing.Action(tr("chart")){ def apply() = ini.put("chartOn", selected) }
-                            selected = ini.getB("chartOn",false)
+                            selected = ini("chartOn",false)
                             tooltip = tr("Enable chart")
                         }
                         ,new swing.Button(new swing.Action(tr("reset")){ def apply = resetAll }){ tooltip = tr("Clear all data") }
                         ,new swing.Label(" | ")
-                        ,new swing.Button(new swing.Action("->PNG"){ def apply = {
+                        ,new swing.Button(new swing.Action(">"){ def apply = {
                             if (chart.snapshotSave(true)) ini.put("pngFile", chart.snapshotDialog.selectedFile.getCanonicalPath)
                         }}){ tooltip = tr("Save chart to PNG") }
-                        ,new swing.Label(" | CSV ")
-                        ,new swing.Button(new swing.Action(tr("save")){ def apply = { csv.save
+                        ,new swing.Label(" PNG")
+                        ,new swing.Label(" | ")
+                        ,new swing.Button(new swing.Action(">"){ def apply = { csv.save
                         }}){ tooltip = tr("Save data to CSV"); csvSaveButton = this }
-                        ,new swing.Button(new swing.Action(tr("load")){ def apply = { csv.load
+                        ,new swing.Label(" CSV ")
+                        ,new swing.Button(new swing.Action(">"){ def apply = { csv.load
                         }}){ tooltip = tr("Load data from CSV"); csvLoadButton = this }
 //                        ,new swing.CheckBox {
 //                            action = new swing.Action(tr("auto")){ def apply() = ini.put("csvAuto", selected) }
-//                            selected = false // ini.getB("csvAuto",false)
+//                            selected = false // ini("csvAuto",false)
 //                            tooltip = tr("Automatic periodic CSV save")
 //                        }
                         ,new swing.Label(" | ")
                         ,new swing.Label(" L&F: ")
                         ,new swing.ComboBox(Config.lafsNames){ maximumSize = preferredSize
-                            selection.index = ini.getI("laf",0)
+                            selection.index = ini("laf",0)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
                                 ini.put("laf", selection.index)
@@ -263,7 +271,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.Label(" | ")
                         ,new swing.Label(" lang: ")
                         ,new swing.ComboBox( scl.GetText.displayLangs ){ maximumSize = preferredSize
-                            selection.index = ini.getI("lang",0)
+                            selection.index = ini("lang",0)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
                                 ini.put("lang", selection.index)
@@ -276,13 +284,13 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 ini.put("server", selected)
                                 serverPortCombo.visible = selected
                             }}
-                            selected = ini.getB("server",false)
+                            selected = ini("server",false)
                             tooltip = tr("Enable server")
                         }
                         ,new swing.ComboBox(List(80,8080,8090,9000)){ maximumSize = preferredSize
-                            visible = ini.getB("server",false)
+                            visible = ini("server",false)
                             makeEditable()(swing.ComboBox.intEditor)
-                            selection.item = ini.getI("serverPort",8090)
+                            selection.item = ini("serverPort",8090)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
                                 ini.put("serverPort", selection.item)
@@ -367,7 +375,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             new swing.Label(tr(" baud:"))
                             ,new swing.ComboBox(Config.bauds){ maximumSize = preferredSize
                                 makeEditable()(swing.ComboBox.intEditor)
-                                selection.item = ini.getI("baud",9600)
+                                selection.item = ini("baud",9600)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("baud", selection.item)
@@ -376,7 +384,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             }
                             ,new swing.Label(tr(" bits:"))
                             ,new swing.ComboBox(List(5,6,7,8)){ maximumSize = preferredSize
-                                selection.item = ini.getI("bits",8)
+                                selection.item = ini("bits",8)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("bits", selection.item)
@@ -394,7 +402,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             }
                             ,new swing.Label(tr(" stops:"))
                             ,new swing.ComboBox(List(1.0,1.5,2.0)){ maximumSize = preferredSize
-                                selection.item = ini.getD("stops",1.0)
+                                selection.item = ini("stops",1.0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("stops", selection.item)
@@ -405,7 +413,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,swing.Swing.HGlue
                     )
                 }
-                ,new swing.BoxPanel(swing.Orientation.Vertical){ configPanel = this; visible = ini.getB("configOn", false); contents ++= List(
+                ,new swing.BoxPanel(swing.Orientation.Vertical){ configPanel = this; visible = ini("configOn", false); contents ++= List(
                     new swing.BoxPanel(swing.Orientation.Horizontal){ val generalConfigPanel = this; border = new EtchedBorder
                         contents ++= List(
                             new swing.Label(" x:")
@@ -417,7 +425,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             }
                             ,new swing.Label(" ")
                             ,new swing.ComboBox(List(tr("line №"),tr("1st col"),tr("date"))){ maximumSize = preferredSize; xTypeCombo = this
-                                selection.index = ini.getI("xType",0)
+                                selection.index = ini("xType",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("xType",selection.index)
@@ -427,7 +435,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 tooltip = tr("X axis type")
                             }
                             ,new swing.Label(" ")
-                            ,new swing.TextField(20){ maximumSize = preferredSize; visible = (ini.getI("xType",0) == 2); xDateFormatText = this
+                            ,new swing.TextField(20){ maximumSize = preferredSize; visible = (ini("xType",0) == 2); xDateFormatText = this
                                 font = new awt.Font( "Monospaced", awt.Font.BOLD, font.getSize )
                                 text = ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss")
                                 listenTo(this)
@@ -440,7 +448,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(tr(" limit: "))
                             ,new swing.ComboBox(List(0,100,500,1000,5000,10000,20000,50000,100000)){ maximumSize = preferredSize
                                 makeEditable()(swing.ComboBox.intEditor)
-                                selection.item = ini.getI("xLimit",0)
+                                selection.item = ini("xLimit",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("xLimit", selection.item)
@@ -451,7 +459,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(tr(" skip: "))
                             ,new swing.ComboBox(List(0,1,4,9,19,49,59,99,199,499,999)){ maximumSize = preferredSize
                                 makeEditable()(swing.ComboBox.intEditor)
-                                selection.item = ini.getI("xSkip",0)
+                                selection.item = ini("xSkip",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("xSkip", selection.item)
@@ -470,37 +478,37 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(tr("window"))
                             ,new swing.Label(" x: ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winXmin",0)
+                                text = ini.get("winXmin",0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("winXmin", text);
-                                    chart.rangeX(ini.getD("winXmin",0),ini.getD("winXmax",0))
+                                    chart.rangeX(ini("winXmin",0),ini("winXmax",0))
                                 }
                                 tooltip = tr("X window minimum")
                             }
                             ,new swing.Label(" .. ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winXmax",0)
+                                text = ini.get("winXmax",0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("winXmax", text);
-                                    chart.rangeX(ini.getD("winXmin",0),ini.getD("winXmax",0))
+                                    chart.rangeX(ini("winXmin",0),ini("winXmax",0))
                                 }
                                 tooltip = tr("X window maximum")
                             }
                             ,new swing.Label(" y: ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winYmin",0)
+                                text = ini.get("winYmin",0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("winYmin", text);
-                                    chart.rangeY(ini.getD("winYmin",0),ini.getD("winYmax",0))
+                                    chart.rangeY(ini("winYmin",0),ini("winYmax",0))
                                 }
                                 tooltip = tr("Y window minimum")
                             }
                             ,new swing.Label(" .. ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winYmax",0)
+                                text = ini.get("winYmax",0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("winYmax", text);
-                                    chart.rangeY(ini.getD("winYmin",0),ini.getD("winYmax",0))
+                                    chart.rangeY(ini("winYmin",0),ini("winYmax",0))
                                 }
                                 tooltip = tr("Y window maximum")
                             }
@@ -508,7 +516,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(tr("grid: "))
                             ,new swing.CheckBox {
                                 action = new swing.Action("x"){ def apply() = { ini.put("gridX", selected); chart.showGridX(selected) }}
-                                selected = ini.getB("gridX",false)
+                                selected = ini("gridX",false)
                                 tooltip = tr("Enable X grid")
                             }
                             ,new swing.CheckBox {
@@ -517,13 +525,13 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     chart.showGridY(selected)
                                     chart.showGridYRight(selected)
                                 }}
-                                selected = ini.getB("gridY",false)
+                                selected = ini("gridY",false)
                                 tooltip = tr("Enable Y grid")
                             }
                             ,swing.Swing.HGlue
                         )
                     }
-                    ,new swing.GridPanel(7,channelsCount+1){ maximumSize = new swing.Dimension(Integer.MAX_VALUE,150)
+                    ,new swing.ScrollPane{ maximumSize = new swing.Dimension(Integer.MAX_VALUE,180); contents = new swing.GridPanel(7,channelsCount+1){
                         border = new EtchedBorder
                         contents += new swing.Label(tr("show")){ tooltip = tr("Trace visibility") }
                         contents ++= (for (i <- 1 to channelsCount)
@@ -531,11 +539,13 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 action = new swing.Action(i.toString){
                                     def apply() = { ini.put("show"+i, selected); chart.traceShow(i-1,selected) }
                                 }
-                                selected = ini.getB("show"+i, false)
+                                selected = ini("show"+i, false)
+                                tooltip = tr("visibility of trace №%d").format(i)
                         })
                         contents += new swing.Label(tr("name")){ tooltip = tr("Trace name") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.TextField(8){
+                                tooltip = tr("name of trace №%d").format(i)
                                 text = ini.get("name"+i,"Y"+i)
                                 listenTo(this)
                                 reactions += { case swing.event.EditDone(_) => ini.put("name"+i, text); chart.traceName(i-1,text) }
@@ -543,7 +553,8 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents += new swing.Label(tr("Y axis")){ tooltip = tr("Number of Y axis") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield (new swing.ComboBox(List(1,2)){
-                                selection.index = ini.getI("yAxis"+i,0)
+                                tooltip = tr("axis of trace №%d").format(i)
+                                selection.index = ini("yAxis"+i,0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("yAxis"+i,selection.index)
@@ -552,67 +563,79 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         )
                         contents += new swing.Label(tr("color")){ tooltip = tr("Trace color") }
                         contents ++= (for (i <- 1 to channelsCount)
-                            yield new swing.Button(""){ val _but = this; background = SwUtil.svgColor(colors.current(i-1));
+                            yield new swing.Button(""){ val _but = this; background = SwUtil.svgColor(colors.get(i-1));
                                 action = new swing.Action(""){ def apply = {
                                     colors.chooser.openColor( colors.current(i-1), { c:String => _but.background = colors.set(i-1,c); chart.traceColor(i-1,colors.current(i-1)) })
-                            }}}
+                            } }; tooltip = tr("color of trace №%d").format(i) }
                         )
                         contents += new swing.Label(tr("width")){ tooltip = tr("Trace width") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
-                                text = ini.get("width"+i,1)
+                                tooltip = tr("width of trace №%d").format(i)
+                                text = ini.get("width"+i,1).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.ValueChanged(_) if (!this.hasFocus && text.length > 0 && editValid) =>
-                                    ini.put("width"+i,text); chart.traceStyle(i-1,ini.getD("width"+i,1.0),ini.getI("style"+i,0))
+                                    ini.put("width"+i,text); chart.traceStyle(i-1,ini("width"+i,1.0),ini("style"+i,0))
                                 }
                         })
                         contents += new swing.Label(tr("style")){ tooltip = tr("Trace style") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield (new swing.ComboBox(List("───────","· · · ·","─ ─ ─ ─")){
-                                selection.index = ini.getI("style"+i,0)
+                                tooltip = tr("style of trace №%d").format(i)
+                                selection.index = ini("style"+i,0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
                                     ini.put("style"+i,selection.index)
-                                    chart.traceStyle(i-1,ini.getD("width"+i,1.0),ini.getI("style"+i,0))
+                                    chart.traceStyle(i-1,ini("width"+i,1.0),ini("style"+i,0))
                                 }
                             })
                         )
                         contents += new swing.Label("Δ"){ tooltip = tr("Value correction") }
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
-                                text = ini.get("yAdd"+i,0)
+                                tooltip = tr("delta of value №%d").format(i)
+                                text = ini.get("yAdd"+i,0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.ValueChanged(_) if (!this.hasFocus && text.length > 0 && editValid) =>
                                     ini.put("yAdd"+i,text)
                                 }
                         })
-                    }
+                    }}
                 ); border = new TitledBorder( new EtchedBorder, tr("Config"), TitledBorder.LEFT, TitledBorder.TOP )}
-                ,new swing.BoxPanel(swing.Orientation.Horizontal){ valuesPanel = this; visible = ini.getB("valuesOn", false)
+                ,new swing.BoxPanel(swing.Orientation.Vertical){ valuesPanel = this; visible = ini("valuesOn", false)
                     border = new EtchedBorder
-                    for (i <- 0 until channelsCount){
-                        val v = new swing.Label { font = new awt.Font("Monospace", awt.Font.BOLD, 30) }
-                        contents += v
-                        values.labels += v
-                        values.setText(i,Double.NaN)
-                        colors.set(i,colors.current(i))
+                    var ch = 0
+                    for (row <- 0 until Math.ceil(channelsCount / channelsInRow.toDouble).toInt){
+                        contents += new swing.BoxPanel(swing.Orientation.Horizontal){
+                            contents += swing.Swing.HGlue
+                            for (col <- 0 until channelsInRow if ((row*channelsInRow + col) < channelsCount)){
+                                val v = new swing.Label {
+                                    font = new awt.Font("Monospace", awt.Font.BOLD, 30)
+                                    tooltip = tr("value №%d").format(row*channelsInRow + col + 1)
+                                }
+                                contents += v
+                                values.labels += v
+                                values.setText(row*channelsInRow + col,Double.NaN)
+                                colors.set(row*channelsInRow + col,colors.get(row*channelsInRow + col))
+                            }
+                            contents += swing.Swing.HGlue
+                        }
                     }
-                    contents += swing.Swing.HGlue
                 }
                 ,new scl.Chart { top.chart = this; xName(ini.get("xLabel","x")); yName(ini.get("yLabel","y"));
                     addAxisRight(false)
                     for (i <- 1 to channelsCount){
-                        addTrace(ini.get("name"+i,"Y"+i), colors.current(i-1), ini.getB("show"+i,false),
-                            ini.getD("width"+i,1.0), ini.getI("style"+i,0), ini.getI("yAxis"+i,0) == 1
+                        addTrace(ini.get("name"+i,"Y"+i), colors.current(i-1), ini("show"+i,false),
+                            ini("width"+i,1.0), ini("style"+i,0), ini("yAxis"+i,0) == 1
                         )
-                        if (ini.getI("yAxis"+i,0) == 1) showAxisRight(true)
+                        if (ini("yAxis"+i,0) == 1) showAxisRight(true)
                     }
-                    rangeX(ini.getD("winXmin",0),ini.getD("winXmax",0))
-                    rangeY(ini.getD("winYmin",0),ini.getD("winYmax",0))
-                    xLimit.set( ini.getI("xLimit",0) )
-                    showGridX(ini.getB("gridX",false))
-                    showGridY(ini.getB("gridY",false))
-                    showGridYRight(ini.getB("gridY",false))
+                    rangeX(ini("winXmin",0),ini("winXmax",0))
+                    rangeY(ini("winYmin",0),ini("winYmax",0))
+                    xLimit.set( ini("xLimit",0) )
+                    showGridX(ini("gridX",false))
+                    showGridY(ini("gridY",false))
+                    showGridYRight(ini("gridY",false))
                     snapshotDialog.selectedFile = new java.io.File(ini.get("pngFile", "snapshot.png"))
                 }
                 ,new swing.BoxPanel(swing.Orientation.Horizontal){
@@ -625,15 +648,15 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
 
         // restore window geometry
         minimumSize   = new swing.Dimension( 800, 600 );
-        bounds        = new swing.Rectangle( ini.getI("x",0), ini.getI("y",0), ini.getI("w",800), ini.getI("h",600) )
+        bounds        = new swing.Rectangle( ini("x",0), ini("y",0), ini("w",800), ini("h",600) )
         preferredSize = new swing.Dimension( bounds.width, bounds.height )
-        if (ini.getB("maximized", false)) maximize
+        if (ini("maximized", false)) maximize
         
         // start server
-        if (ini.getB("server",false)){
+        if (ini("server",false)){
             new java.lang.Thread {
                 override def run = {
-                    server = new scl.ServerJetty( ini.getI("serverPort",8090), "./static", 0 ){
+                    server = new scl.ServerJetty( ini("serverPort",8090), "./static", 0 ){
                         override def newHandler(target:String, baseRequest:jetty.server.Request, request:HttpServletRequest, response:HttpServletResponse) =
                             new scl.HandlerJetty(target, baseRequest, request, response){
                             val _handler = this
