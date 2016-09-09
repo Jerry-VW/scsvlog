@@ -162,11 +162,12 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     if (l.startsWith("#")) statusText.text = "<html>" + l.substring(1) + "</html>"
                     else {
                         var x:Double = lineNum.getAndIncrement()
-                        val ys = l.replaceAll(";","").replaceAll(",","").replaceAll("\r","").split("\\s+").toBuffer[String]
+                        val ys = l.replace(";","").replace(",","").replace("\r","").split("\\s+").toBuffer[String]
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
                         val y = (ys.map { _.toDouble }); //println(y.mkString(","))
+                        // correction
                         for (i <- 0 until y.length if (!y(i).isNaN)){
-                            y(i) += ini("yAdd"+i,0)
+                            y(i) += ini("yAdd"+(i+1),0)
                             serverData.lazySet(i, y(i))
                         }
                         if (y.length > 0){
@@ -597,7 +598,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 text = ini.get("yAdd"+i,0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.ValueChanged(_) if (!this.hasFocus && text.length > 0 && editValid) =>
-                                    ini.put("yAdd"+i,text)
+                                    ini("yAdd"+i) = text
                                 }
                         })
                     }}

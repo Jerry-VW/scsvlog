@@ -3,6 +3,9 @@ package scl
 import java.io.File
 
 object Files {
+    def file(f:String) = new java.io.File(f)
+    def exists(f:String) = file(f).exists()
+    
     // create multiple dirs
     def mkDirs(dirs:File*):Unit = dirs foreach { dir => dir.mkdir() };
     // clear multiple dirs
@@ -31,9 +34,6 @@ object Files {
         })
     }
     
-    // check if file exists
-    def exists(fn:String) = (new File(fn)).exists()
-
     // read to array of bytes
     def readBytes(f:File):Array[Byte] = java.nio.file.Files.readAllBytes(f.toPath)
     // read text file
