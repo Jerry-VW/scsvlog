@@ -167,7 +167,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         val y = (ys.map { _.toDouble }); //println(y.mkString(","))
                         // correction
                         for (i <- 0 until y.length if (!y(i).isNaN)){
-                            y(i) += ini("yAdd"+(i+1),0)
+                            y(i) += ini("yAdd"+(i+1),0.0)
                             serverData.lazySet(i, y(i))
                         }
                         if (y.length > 0){
@@ -595,7 +595,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
                                 tooltip = tr("delta of value №%d").format(i)
-                                text = ini.get("yAdd"+i,0).toString()
+                                text = ini("yAdd"+i,0.0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.ValueChanged(_) if (!this.hasFocus && text.length > 0 && editValid) =>
                                     ini("yAdd"+i) = text
