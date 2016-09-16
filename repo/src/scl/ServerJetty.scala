@@ -49,7 +49,7 @@ println("Shutdown timeout !");
                             shutdownCounter.set(0)
 		                    if (!newHandler(target,baseRequest,request,response).handle)
 		                        super.handle(target, baseRequest, request, response);
-//                        } catch { case _:Throwable => }
+//                        } catch { case _:Exception => }
                     }
                 }
             ))

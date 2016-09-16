@@ -12,7 +12,7 @@ class ChannelSerial extends Channel {
             if (opened) close
             port = CommPortIdentifier.getPortIdentifier(name).open("SerialPJC@" + name, 100).asInstanceOf[SerialPort]
             _name = name
-        } catch { case _:Throwable => port = null }
+        } catch { case _:Exception => port = null }
         opened
     }
     def opened = port != null
@@ -44,7 +44,7 @@ class ChannelSerial extends Channel {
             case "dtr" => port.setDTR(v.toString.toBoolean)
             case "rts" => port.setRTS(v.toString.toBoolean)
         }
-    } catch { case _:Throwable => }
+    } catch { case _:Exception => }
     override def propGet(k:String, d:String):String = if (opened){
         k match {
             case "baud" => port.getBaudRate.toString

@@ -10,7 +10,7 @@ object GetText {
     val langDef = "en"
     var lang = langDef
 
-    def tr(s:String, pl:Int=1 ):String = { try { cat(lang)(s)(1)(pl-1) } catch { case _:Throwable => s } }
+    def tr(s:String, pl:Int=1 ):String = { try { cat(lang)(s)(1)(pl-1) } catch { case _:Exception => s } }
 
     def set(l:String) = lang = l
     def set(l:Int) = lang = langs(l)
@@ -35,10 +35,10 @@ object GetText {
                         "ISO-8859-1"
                         ).map(_.toByte ).toArray
                     )
-                } catch { case _:Throwable => }
+                } catch { case _:Exception => }
             }
             lang = langs(langIndex)
-        } catch { case _:Throwable => }
+        } catch { case _:Exception => }
     }
     
     /**
