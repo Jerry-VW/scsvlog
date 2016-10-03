@@ -109,7 +109,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
             // save CSV dialog
             val dialog = new swing.FileChooser{
                 fileFilter   = new javax.swing.filechooser.FileNameExtensionFilter("CSV file","csv")
-                selectedFile = new java.io.File(ini.get("csvFile", "data.csv"))
+                selectedFile = new java.io.File(ini("csvFile", "data.csv"))
             }
             def save = {
                 dialog.title = tr("Save CSV...")
@@ -119,15 +119,15 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         (swing.Dialog.showConfirmation(null, tr("Replace ?"), tr("Confirm replace"), swing.Dialog.Options.YesNo, swing.Dialog.Message.Question) == swing.Dialog.Result.Yes))){
                         try {
                             java.nio.file.Files.write(dialog.selectedFile.toPath, lines.mkString("\r\n").getBytes("UTF-8"))
-                        } catch { case _:Throwable => }
-                        ini.put("csvFile", csv.dialog.selectedFile.getCanonicalPath )
+                        } catch { case _:Exception => }
+                        ini("csvFile") = csv.dialog.selectedFile.getCanonicalPath
                     }
                 }
             }
             def load = {
                 dialog.title = tr("Load CSV...")
                 if (dialog.showOpenDialog(null) == swing.FileChooser.Result.Approve){
-                    ini.put("csvFile", dialog.selectedFile.getCanonicalPath )
+                    ini("csvFile") = dialog.selectedFile.getCanonicalPath
                     resetAll
                     try {
                         io.Source.fromFile(dialog.selectedFile, "UTF-8").getLines.foreach { l =>
@@ -140,7 +140,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             }
                         }
                         top.title = Config.title + " : " + dialog.selectedFile.getCanonicalPath
-                    } catch { case _:Throwable => }
+                    } catch { case _:Exception => }
                 }
             }
         }
@@ -200,7 +200,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     lineBuf.clear
                                 } else lineBuf += (b & 0xFF).toByte
                             }
-                        } catch { case _:Throwable => disconnectButton.action.apply() }
+                        } catch { case _:Exception => disconnectButton.action.apply() }
                     } else { readBuf.clear; lineBuf.clear; lineNum.set(0) }
                 }
             }, 50, 50)
@@ -209,7 +209,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         // clear all data
         def resetAll = {
             chart.clearPoints
-            chart.xAxisFormat(ini("xType",0) == 2, ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss"))
+            chart.xAxisFormat(ini("xType",0) == 2, ini("xLabelDate","yyyy.MM.dd HH.mm.ss"))
             pollTimer.lineNum.set(0)
             csv.lines.clear
         }
@@ -243,7 +243,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.Button(new swing.Action(tr("reset")){ def apply = resetAll }){ tooltip = tr("Clear all data") }
                         ,new swing.Label(" | ")
                         ,new swing.Button(new swing.Action(">"){ def apply = {
-                            if (chart.snapshotSave(true)) ini.put("pngFile", chart.snapshotDialog.selectedFile.getCanonicalPath)
+                            if (chart.snapshotSave(true)) ini("pngFile") = chart.snapshotDialog.selectedFile.getCanonicalPath
                         }}){ tooltip = tr("Save chart to PNG") }
                         ,new swing.Label(" PNG")
                         ,new swing.Label(" | ")
@@ -263,7 +263,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             selection.index = ini("laf",0)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
-                                ini.put("laf", selection.index)
+                                ini("laf") = selection.index
                                 javax.swing.UIManager.setLookAndFeel(Config.lafs(selection.index))
                                 javax.swing.SwingUtilities.updateComponentTreeUI(top.peer)
                             }
@@ -275,14 +275,14 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             selection.index = ini("lang",0)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
-                                ini.put("lang", selection.index)
+                                ini("lang") = selection.index
                             }
                             tooltip = tr("Select current language")
                         }
                         ,new swing.Label(" | ")
                         ,new swing.CheckBox {
                             action = new swing.Action(tr("server")){ def apply() = {
-                                ini.put("server", selected)
+                                ini("server") = selected
                                 serverPortCombo.visible = selected
                             }}
                             selected = ini("server",false)
@@ -294,7 +294,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             selection.item = ini("serverPort",8090)
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
-                                ini.put("serverPort", selection.item)
+                                ini("serverPort") = selection.item
                             }
                             tooltip = tr("Server port")
                             serverPortCombo = this
@@ -304,15 +304,15 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         ,new swing.Button(new swing.Action(tr("connect")){ def apply = {
                             try {
                                 if (channel != null){ channelOpened.set(false); channel.close; channel = null }
-                                channel = ini.get("port","socketTCP") match {
-                                    case "socketTCP" => new scl.ChannelSocketTCP{ open( ini.get("ip","127.0.0.1:9000") ) }
-                                    case "socketUDP" => new scl.ChannelSocketUDP{ open( ini.get("ip","127.0.0.1:9000") ) }
+                                channel = ini("port","socketTCP") match {
+                                    case "socketTCP" => new scl.ChannelSocketTCP{ open( ini("ip","127.0.0.1:9000") ) }
+                                    case "socketUDP" => new scl.ChannelSocketUDP{ open( ini("ip","127.0.0.1:9000") ) }
                                     case p:String => new scl.ChannelSerial {
                                         open(p)
-                                        propSet("baud",ini.get("baud",9600))
-                                        propSet("bits",ini.get("bits",8))
-                                        propSet("parity",ini.get("parity","none"))
-                                        propSet("stops",ini.get("stops",1.0))
+                                        propSet("baud", ini("baud",9600))
+                                        propSet("bits", ini("bits",8))
+                                        propSet("parity", ini("parity","none"))
+                                        propSet("stops", ini("stops",1.0))
                                     }
                                 }
                                 
@@ -329,7 +329,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     csvLoadButton.enabled    = false
                                     channelOpened.set(true)
                                 }
-                            } catch { case _:Throwable => }
+                            } catch { case _:Exception => }
                         }}){ connectButton = this; tooltip = tr("Connect to port") }
                         ,new swing.Button(new swing.Action(tr("disconnect")){ def apply = { println("disconnect...")
                             channelOpened.set(false)
@@ -349,10 +349,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     border = new TitledBorder( new EtchedBorder, tr("Port"), TitledBorder.LEFT, TitledBorder.TOP )
                     contents ++= List(
                         new swing.ComboBox(List("socketTCP","socketUDP") ::: scl.ChannelSerial.channels.sorted.toList){ maximumSize = preferredSize
-                            selection.item = ini.get("port", "socketTCP")
+                            selection.item = ini("port", "socketTCP")
                             listenTo(selection)
                             reactions += { case swing.event.SelectionChanged(_) =>
-                                ini.put("port", selection.item)
+                                ini("port") = selection.item
                                 ipText.visible = selection.item.startsWith("socket")
                                 serialPanel.visible = !ipText.visible
                                 portPanel.revalidate
@@ -361,11 +361,11 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         }
                         ,new swing.Label(" ")
                         ,new swing.TextField(18){ maximumSize = preferredSize; ipText  = this
-                            visible = ini.get("port","socketTCP").startsWith("socket")
+                            visible = ini("port","socketTCP").startsWith("socket")
                             font = new awt.Font( "Monospaced", awt.Font.BOLD, font.getSize )
-                            text    = ini.get("ip","127.0.0.1:9000")
+                            text    = ini("ip","127.0.0.1:9000")
                             listenTo(this)
-                            reactions += { case swing.event.EditDone(_) => ini.put("ip", text) }
+                            reactions += { case swing.event.EditDone(_) => ini("ip") = text }
                             verifier = v => {
                                 println( v.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$") )
                                 v.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$")
@@ -379,7 +379,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.item = ini("baud",9600)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("baud", selection.item)
+                                    ini("baud") = selection.item
                                 }
                                 tooltip = tr("Serial port baud rate")
                             }
@@ -388,16 +388,16 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.item = ini("bits",8)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("bits", selection.item)
+                                    ini("bits") = selection.item
                                 }
                                 tooltip = tr("Serial port data bits")
                             }
                             ,new swing.Label(tr(" parity:"))
                             ,new swing.ComboBox(List("none","even","odd","mark","space")){ maximumSize = preferredSize
-                                selection.item = ini.get("parity", "none")
+                                selection.item = ini("parity", "none")
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("parity", selection.item)
+                                    ini("parity") = selection.item
                                 }
                                 tooltip = tr("Serial port parity")
                             }
@@ -406,11 +406,11 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.item = ini("stops",1.0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("stops", selection.item)
+                                    ini("stops") = selection.item
                                 }
                                 tooltip = tr("Serial port stop bits")
                             }
-                        ); serialPanel = this; visible = !ini.get("port","socketTCP").startsWith("socket") }
+                        ); serialPanel = this; visible = !ini("port","socketTCP").startsWith("socket") }
                         ,swing.Swing.HGlue
                     )
                 }
@@ -419,9 +419,9 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents ++= List(
                             new swing.Label(" x:")
                             ,new swing.TextField(5){ maximumSize = preferredSize
-                                text = ini.get("xLabel","x")
+                                text = ini("xLabel","x")
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("xLabel",text); chart.xName(text) }
+                                reactions += { case swing.event.EditDone(_) => ini("xLabel") = text; chart.xName(text) }
                                 tooltip = tr("X axis label")
                             }
                             ,new swing.Label(" ")
@@ -429,7 +429,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.index = ini("xType",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("xType",selection.index)
+                                    ini("xType") = selection.index
                                     xDateFormatText.visible = (selection.index == 2)
                                     generalConfigPanel.revalidate
                                 }
@@ -438,9 +438,9 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(" ")
                             ,new swing.TextField(20){ maximumSize = preferredSize; visible = (ini("xType",0) == 2); xDateFormatText = this
                                 font = new awt.Font( "Monospaced", awt.Font.BOLD, font.getSize )
-                                text = ini.get("xLabelDate","yyyy.MM.dd HH.mm.ss")
+                                text = ini("xLabelDate","yyyy.MM.dd HH.mm.ss")
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("xLabelDate",text) }
+                                reactions += { case swing.event.EditDone(_) => ini("xLabelDate") = text }
                                 tooltip = tr("<html>X axis date/time format:<br>" +
                                     "<b>y</b> - year, <b>M</b> - month, <b>d</b> - date;<br>" +
                                     "<b>H</b> - hour, <b>m</b> - minute, <b>s</b> - second;<br>" +
@@ -452,7 +452,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.item = ini("xLimit",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("xLimit", selection.item)
+                                    ini("xLimit") = selection.item
                                     chart.xLimit.set( selection.item )
                                 }
                                 tooltip = tr("Limit number of points")
@@ -463,52 +463,52 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.item = ini("xSkip",0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("xSkip", selection.item)
+                                    ini("xSkip") = selection.item
                                 }
                                 tooltip = tr("Skip CSV lines")
                             }
                             ,new swing.Label(" | ")
                             ,new swing.Label(" y:")
                             ,new swing.TextField(5){ maximumSize = preferredSize
-                                text = ini.get("yLabel","y")
+                                text = ini("yLabel","y")
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("yLabel",text); chart.yName(text) }
+                                reactions += { case swing.event.EditDone(_) => ini("yLabel") = text; chart.yName(text) }
                                 tooltip = tr("Y axis label")
                             }
                             ,new swing.Label(" | ")
                             ,new swing.Label(tr("window"))
                             ,new swing.Label(" x: ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winXmin",0).toString()
+                                text = ini("winXmin",0).toString()
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("winXmin", text);
+                                reactions += { case swing.event.EditDone(_) => ini("winXmin") = text;
                                     chart.rangeX(ini("winXmin",0),ini("winXmax",0))
                                 }
                                 tooltip = tr("X window minimum")
                             }
                             ,new swing.Label(" .. ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winXmax",0).toString()
+                                text = ini("winXmax",0).toString()
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("winXmax", text);
+                                reactions += { case swing.event.EditDone(_) => ini("winXmax") = text;
                                     chart.rangeX(ini("winXmin",0),ini("winXmax",0))
                                 }
                                 tooltip = tr("X window maximum")
                             }
                             ,new swing.Label(" y: ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winYmin",0).toString()
+                                text = ini("winYmin",0).toString()
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("winYmin", text);
+                                reactions += { case swing.event.EditDone(_) => ini("winYmin") = text;
                                     chart.rangeY(ini("winYmin",0),ini("winYmax",0))
                                 }
                                 tooltip = tr("Y window minimum")
                             }
                             ,new swing.Label(" .. ")
                             ,new swing.TextField(4){ maximumSize = preferredSize
-                                text = ini.get("winYmax",0).toString()
+                                text = ini("winYmax",0).toString()
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("winYmax", text);
+                                reactions += { case swing.event.EditDone(_) => ini("winYmax") = text;
                                     chart.rangeY(ini("winYmin",0),ini("winYmax",0))
                                 }
                                 tooltip = tr("Y window maximum")
@@ -516,13 +516,13 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             ,new swing.Label(" | ")
                             ,new swing.Label(tr("grid: "))
                             ,new swing.CheckBox {
-                                action = new swing.Action("x"){ def apply() = { ini.put("gridX", selected); chart.showGridX(selected) }}
+                                action = new swing.Action("x"){ def apply() = { ini("gridX") = selected; chart.showGridX(selected) }}
                                 selected = ini("gridX",false)
                                 tooltip = tr("Enable X grid")
                             }
                             ,new swing.CheckBox {
                                 action = new swing.Action("y"){ def apply() = {
-                                    ini.put("gridY", selected)
+                                    ini("gridY") = selected
                                     chart.showGridY(selected)
                                     chart.showGridYRight(selected)
                                 }}
@@ -538,7 +538,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.CheckBox { maximumSize = preferredSize
                                 action = new swing.Action(i.toString){
-                                    def apply() = { ini.put("show"+i, selected); chart.traceShow(i-1,selected) }
+                                    def apply() = { ini("show"+i) = selected; chart.traceShow(i-1,selected) }
                                 }
                                 selected = ini("show"+i, false)
                                 tooltip = tr("visibility of trace №%d").format(i)
@@ -547,9 +547,9 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.TextField(8){
                                 tooltip = tr("name of trace №%d").format(i)
-                                text = ini.get("name"+i,"Y"+i)
+                                text = ini("name"+i,"Y"+i)
                                 listenTo(this)
-                                reactions += { case swing.event.EditDone(_) => ini.put("name"+i, text); chart.traceName(i-1,text) }
+                                reactions += { case swing.event.EditDone(_) => ini("name"+i) = text; chart.traceName(i-1,text) }
                         })
                         contents += new swing.Label(tr("Y axis")){ tooltip = tr("Number of Y axis") }
                         contents ++= (for (i <- 1 to channelsCount)
@@ -558,7 +558,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.index = ini("yAxis"+i,0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("yAxis"+i,selection.index)
+                                    ini("yAxis"+i) = selection.index
                                 }
                             })
                         )
@@ -573,10 +573,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         contents ++= (for (i <- 1 to channelsCount)
                             yield new swing.FormattedTextField(java.text.NumberFormat.getNumberInstance){
                                 tooltip = tr("width of trace №%d").format(i)
-                                text = ini.get("width"+i,1).toString()
+                                text = ini("width"+i,1.0).toString()
                                 listenTo(this)
                                 reactions += { case swing.event.ValueChanged(_) if (!this.hasFocus && text.length > 0 && editValid) =>
-                                    ini.put("width"+i,text); chart.traceStyle(i-1,ini("width"+i,1.0),ini("style"+i,0))
+                                    ini("width"+i) = text; chart.traceStyle(i-1,ini("width"+i,1.0),ini("style"+i,0))
                                 }
                         })
                         contents += new swing.Label(tr("style")){ tooltip = tr("Trace style") }
@@ -586,7 +586,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                 selection.index = ini("style"+i,0)
                                 listenTo(selection)
                                 reactions += { case swing.event.SelectionChanged(_) =>
-                                    ini.put("style"+i,selection.index)
+                                    ini("style"+i) = selection.index
                                     chart.traceStyle(i-1,ini("width"+i,1.0),ini("style"+i,0))
                                 }
                             })
@@ -623,10 +623,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                         }
                     }
                 }
-                ,new scl.Chart { top.chart = this; xName(ini.get("xLabel","x")); yName(ini.get("yLabel","y"));
+                ,new scl.Chart { top.chart = this; xName(ini("xLabel","x")); yName(ini("yLabel","y"));
                     addAxisRight(false)
                     for (i <- 1 to channelsCount){
-                        addTrace(ini.get("name"+i,"Y"+i), colors.current(i-1), ini("show"+i,false),
+                        addTrace(ini("name"+i,"Y"+i), colors.current(i-1), ini("show"+i,false),
                             ini("width"+i,1.0), ini("style"+i,0), ini("yAxis"+i,0) == 1
                         )
                         if (ini("yAxis"+i,0) == 1) showAxisRight(true)
@@ -637,7 +637,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                     showGridX(ini("gridX",false))
                     showGridY(ini("gridY",false))
                     showGridYRight(ini("gridY",false))
-                    snapshotDialog.selectedFile = new java.io.File(ini.get("pngFile", "snapshot.png"))
+                    snapshotDialog.selectedFile = new java.io.File(ini("pngFile", "snapshot.png"))
                 }
                 ,new swing.BoxPanel(swing.Orientation.Horizontal){
                     contents ++= List(
@@ -667,7 +667,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                         response.setContentType("application/json")
                                         responseStr = "[" + (0 until channelsCount map(serverData.get(_))).mkString(",") + "]"
                                         handled = true
-                                }} catch { case _:Throwable => }
+                                }} catch { case _:Exception => }
                                 super.handle
                             }
                         }
@@ -680,13 +680,14 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         
         // save configuration on close
         override def closeOperation() {
-            ini.put("x", bounds.x); ini.put("y", bounds.y);
-            ini.put("w", bounds.width); ini.put("h", bounds.height);
-            ini.put("maximized", maximized)
-            ini.put("colors", colors.current.mkString(","))
+            ini("x") = bounds.x; ini("y") = bounds.y;
+            ini("w") = bounds.width; ini("h") = bounds.height;
+            ini("maximized") = maximized
+            ini("colors") = colors.current.mkString(",")
             ini.save
             if (server != null) server.stop(0)
             super.closeOperation()
         }
     }
 }
+
