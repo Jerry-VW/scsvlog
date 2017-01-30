@@ -159,14 +159,16 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                 if (firstLine.get) firstLine.set(false)
                 else {
                     val l = new String(lineBuf.toArray, "UTF-8")
-                    if (l.startsWith("#")) statusText.text = "<html>" + l.substring(1) + "</html>"
-                    else {
+                    if (l.startsWith("#")){
+                        statusText.text = "<html>" + l.substring(1).replace("\r","").replace("\n","") + "</html>"
+                        if (!statusText.visible) statusText.visible = true;
+                    } else {
                         var x:Double = lineNum.getAndIncrement()
-                        val ys = l.replace(";","").replace(",","").replace("\r","").split("\\s+").toBuffer[String]
+                        val ys = l.replace(";","").replace(",","").replace("\r","").replace("\n","").split("\\s+").toBuffer[String]
                         while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
                         val y = (ys.map { _.toDouble }); //println(y.mkString(","))
                         // correction
-                        for (i <- 0 until y.length if (!y(i).isNaN)){
+                        for (i <- 0 until y.length if (!y(i).isNaN && !y(i).isInfinity)){
                             y(i) += ini("yAdd"+(i+1),0.0)
                             serverData.lazySet(i, y(i))
                         }
@@ -200,7 +202,10 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                                     lineBuf.clear
                                 } else lineBuf += (b & 0xFF).toByte
                             }
-                        } catch { case _:Exception => disconnectButton.action.apply() }
+                        } catch {
+                            case _:java.io.IOException => disconnectButton.action.apply()
+                            case _:Exception =>
+                        }
                     } else { readBuf.clear; lineBuf.clear; lineNum.set(0) }
                 }
             }, 50, 50)
@@ -641,7 +646,12 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                 }
                 ,new swing.BoxPanel(swing.Orientation.Horizontal){
                     contents ++= List(
-                        new swing.Label(""){ statusText = this; visible = false; font = new awt.Font("Monospace", awt.Font.BOLD, 18) }
+                        new swing.Label(""){
+                            statusText = this
+                            visible = false
+                            font = new awt.Font("Monospace", awt.Font.BOLD, 18)
+                            horizontalAlignment = swing.Alignment.Left
+                        }
                         ,swing.Swing.HGlue
                 )}
             )

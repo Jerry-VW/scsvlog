@@ -21,7 +21,7 @@ DIR_SETTINGS := ./.settings
 DIR_DB      := ./db
 DIR_STATIC  := ./static
 
-.PHONY: dist repo commit push release locale run doc scripts
+.PHONY: dist repo commit push release locale run doc scripts clean
 
 dist:
 	rm -rf $(DIR_DIST)/*
@@ -76,3 +76,6 @@ scripts:
 run: scripts
 	cd ./$(DIR_DIST); ./$(PROJECT).sh
 	
+clean:
+	rm -rf $(DIR_REPO)/*
+	rm -rf $(DIR_RELEASE)/*
