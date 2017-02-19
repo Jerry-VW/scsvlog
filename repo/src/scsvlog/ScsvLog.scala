@@ -46,7 +46,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
             val width = 10
             
             def setText(i:Int, v:Double) = if (i < channelsCount){ labels(i).text = ("%" + width + "s").format( if (v.isNaN) "-" else v.toString ) }
-            def setAllText(v:Seq[Double]) = { for (i <- 0 until v.length) setText(i,v(i)) }
+            def setAllText(v:Seq[Double]) = swing.Swing.onEDT( { for (i <- 0 until v.length) setText(i,v(i)) } )
         }
     
         object colors {
@@ -146,76 +146,96 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
         }
         
         // channel poll timer - receive/parse CSV lines
-        val pollTimer = new java.util.Timer {
+        object poll {
             
             val firstLine = new atomic.AtomicBoolean(true)
             val readBuf   = new collection.mutable.Queue[Byte]
             val lineBuf   = new collection.mutable.ArrayBuffer[Byte]
             val lineNum   = new atomic.AtomicInteger(0)
             val lineSkip  = new atomic.AtomicInteger(0)
+            val linesIn   = new java.util.concurrent.ConcurrentLinkedQueue[String]
             
             // process new line
-            def processLine = {
-                if (firstLine.get) firstLine.set(false)
-                else {
-                    val l = new String(lineBuf.toArray, "UTF-8")
-                    if (l.startsWith("#")){
-                        statusText.text = "<html>" + l.substring(1).replace("\r","").replace("\n","") + "</html>"
-                        if (!statusText.visible) statusText.visible = true;
-                    } else {
-                        var x:Double = lineNum.getAndIncrement()
-                        val ys = l.replace(";","").replace(",","").replace("\r","").replace("\n","").split("\\s+").toBuffer[String]
-                        while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
-                        val y = (ys.map { _.toDouble }); //println(y.mkString(","))
-                        // correction
-                        for (i <- 0 until y.length if (!y(i).isNaN && !y(i).isInfinity)){
-                            y(i) += ini("yAdd"+(i+1),0.0)
-                            serverData.lazySet(i, y(i))
+            val lineTimer = new java.util.Timer { scheduleAtFixedRate( new java.util.TimerTask { def run = {
+                if (!linesIn.isEmpty){
+                    val l = linesIn.poll
+                    if (firstLine.get) firstLine.set(false)
+                    else try {
+                        if (l.startsWith("#")){
+                            statusText.text = "<html>" + l.substring(1).replace("\r","").replace("\n","") + "</html>"
+                            if (!statusText.visible) statusText.visible = true
+                        } else {
+                            var x:Double = lineNum.getAndIncrement()
+                            val ys = l.replace(";","").replace(",","").replace("\r","").replace("\n","").split("\\s+").toBuffer[String]
+                            while ((ys.length > 0)&&(ys(0).length == 0)) ys.trimStart(1)
+                            val y = (ys.map { ns =>
+                                if (ns.startsWith("0x")) java.lang.Integer.parseInt(ns.substring(2), 16)
+                                else if (ns.startsWith("0b")) java.lang.Integer.parseInt(ns.substring(2), 2)
+                                else if (ns.startsWith("0o")) java.lang.Integer.parseInt(ns.substring(2), 8)
+                                else ns.toDouble
+                            })
+                            // correction
+                            for (i <- 0 until y.length if (!y(i).isNaN && !y(i).isInfinity)){
+                                y(i) += ini("yAdd"+(i+1),0.0)
+                                serverData.lazySet(i, y(i))
+                            }
+                            // add to graphs
+                            if (y.length > 0){
+                                if (ini("xType",0) == 1){ x = y(0); y.trimStart(1) }
+                                else if (ini("xType",0) == 2) x = System.currentTimeMillis
+                                while (y.length < channelsCount) y.append(Double.NaN)
+                                values.setAllText(y)
+                                if (lineSkip.get == 0){
+                                    lineSkip.set(ini("xSkip",0))
+                                    if (ini("chartOn",false)){
+                                        swing.Swing.onEDT( chart.addPoints(x, y) )
+                                        csv.lines += (if (ini("xType",0) == 2) csv.dateFormatter.format(new java.util.Date(x.toLong)) else x.toString) +
+                                            csv.separator + y.mkString(csv.separator)
+                                    }
+                                } else lineSkip.decrementAndGet
+                            }
                         }
-                        if (y.length > 0){
-                            if (ini("xType",0) == 1){ x = y(0); y.trimStart(1) }
-                            else if (ini("xType",0) == 2) x = System.currentTimeMillis
-                            while (y.length < channelsCount) y.append(Double.NaN)
-                            values.setAllText(y)
-                            if (lineSkip.get == 0){
-                                lineSkip.set(ini("xSkip",0))
-                                if (ini("chartOn",false)){
-                                    chart.addPoints(x, y)
-                                    csv.lines += (if (ini("xType",0) == 2) csv.dateFormatter.format(new java.util.Date(x.toLong)) else x.toString) +
-                                        csv.separator + y.mkString(csv.separator)
-                                }
-                            } else lineSkip.decrementAndGet
-                        }
+                    } catch {
+                        case _:Exception =>
                     }
                 }
-            }
-            scheduleAtFixedRate( new java.util.TimerTask {
-                def run = {
-                    if (channelOpened.get()){
-                        try {
-                            readBuf ++= channel.read
-                            var b = -1
-                            while ((readBuf.length > 0)&&(b != '\n')){
-                                b = readBuf.dequeue
-                                if (b == '\n'){
-                                    processLine
-                                    lineBuf.clear
-                                } else lineBuf += (b & 0xFF).toByte
-                            }
-                        } catch {
-                            case _:java.io.IOException => disconnectButton.action.apply()
-                            case _:Exception =>
+            }}, 10, 200)}
+            
+            val portTimer = new java.util.Timer { scheduleAtFixedRate( new java.util.TimerTask { def run = {
+                if (channelOpened.get()){
+                    try {
+                        readBuf ++= channel.read
+                        var b = -1
+                        while ((readBuf.length > 0)&&(b != '\n')){
+                            b = readBuf.dequeue
+                            if (b == '\n'){
+                                linesIn.add(new String(lineBuf.toArray, "UTF-8"))
+                                lineBuf.clear
+                            } else lineBuf += (b & 0xFF).toByte
                         }
-                    } else { readBuf.clear; lineBuf.clear; lineNum.set(0) }
-                }
-            }, 50, 50)
+                    } catch {
+                        case _:java.io.IOException =>
+                            if (!channel.name.startsWith("socket") && !channel.channels.contains(channel.name)){
+                                readBuf.clear
+                                linesIn.clear
+                                disconnectButton.action.apply()
+                            }
+                        case _:Exception =>
+                            lineBuf.clear
+                    }
+                } else { if (!readBuf.isEmpty){
+                    readBuf.clear
+                    lineBuf.clear
+                    lineNum.set(0)
+                }}
+            }}, 10, 20)}
         }
 
         // clear all data
         def resetAll = {
             chart.clearPoints
             chart.xAxisFormat(ini("xType",0) == 2, ini("xLabelDate","yyyy.MM.dd HH.mm.ss"))
-            pollTimer.lineNum.set(0)
+            poll.lineNum.set(0)
             csv.lines.clear
         }
         
@@ -372,7 +392,7 @@ object ScsvLog extends swing.SimpleSwingApplication with scl.GetText {
                             listenTo(this)
                             reactions += { case swing.event.EditDone(_) => ini("ip") = text }
                             verifier = v => {
-                                println( v.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$") )
+//                                println( v.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$") )
                                 v.matches("^(?:[0-9]{1,3}\\.){3}[0-9]{1,3}$")
                             }
                             tooltip = tr("Socket IP address and port")
